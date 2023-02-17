@@ -13,6 +13,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     uint public price;
 
     bool public immutable isSoulbound;
+    bool public immutable isRevokable;
     uint public immutable maxSupply; // 0 = unlimited
     uint public dropStart; // timestamp when mint starts
     uint public reserve; // reserved for owner to be minted free of charge
@@ -20,7 +21,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     /**
      * Royalties fee percent.
      */
-    uint256 public royaltiesFees = 5; // 5%
+    uint public royaltiesFees;
 
     /**
      * Royalties address.
@@ -32,7 +33,9 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         string memory _symbol,
         string memory _initBaseURI,
         address _royaltiesAddress,
+        uint _royaltiesFees,
         bool _isSoulbound,
+        bool _isRevokable,
         uint _maxSupply,
         uint _reserve,
         uint _price,
@@ -41,15 +44,19 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         baseURI = _initBaseURI;
         royaltiesAddress = _royaltiesAddress;
         isSoulbound = _isSoulbound;
+        isRevokable = _isRevokable;
         maxSupply = _maxSupply;
+        price = _price;
+        dropStart = _dropStart;
 
         require (
             _maxSupply == 0 || _reserve <= _maxSupply, 
             "Reserve too high."
         );
         reserve = _reserve;
-        price = _price;
-        dropStart = _dropStart;
+        
+        require(_royaltiesFees <= 100, "royaltiesFees too high.");
+        royaltiesFees = _royaltiesFees;
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -110,6 +117,15 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         super._transfer(from, to, tokenId);
     }
 
+    function burn(uint tokenId) external {
+        require(isRevokable, "NFT not revokable!");
+        require(
+            msg.sender == owner() || msg.sender == ERC721.ownerOf(tokenId),
+            "Unauthorized."
+        );
+        _burn(tokenId);
+    }
+
     function walletOfOwner(address _owner) external view returns (uint256[] memory)
     {
         uint256 ownerTokenCount = balanceOf(_owner);
@@ -154,7 +170,8 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     /**
      * Set royalties fees.
      */
-    function setRoyaltiesFees(uint256 _royaltiesFees) external onlyOwner {
+    function setRoyaltiesFees(uint _royaltiesFees) external onlyOwner {
+        require(_royaltiesFees <= 100, "royaltiesFees too high.");
         royaltiesFees = _royaltiesFees;
     }
 
