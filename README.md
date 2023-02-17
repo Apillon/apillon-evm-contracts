@@ -1,29 +1,43 @@
-# README #
+# Kingdom NFT contracts
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This repo contains smart contracts that [Kingdom NFT] use.
 
-### What is this repository for? ###
+## Development
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+> Instructions for development.
 
-### How do I get set up? ###
+### Project setup
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+Copy `hardhat.sample.config.js` to `hardhat.config.js` and fill out missing data. ()
 
-### Contribution guidelines ###
+### Test
 
-* Writing tests
-* Code review
-* Other guidelines
+Run `npm test`.
 
-### Who do I talk to? ###
+### Build
 
-* Repo owner or admin
-* Other community or team contact
+Run `npm run build`.
+
+### Flatten
+
+Run `npm run flatten`.
+
+## Deployment
+
+> Smart contract deployment instructions.
+
+### Kingdom
+
+Make sure the correct collecation name and symbol an URI are set.
+
+`npx hardhat run --network polygontestnet scripts/deploy-collection.js`
+
+### Verify contract
+
+> Note: Etherscan API-key needs to be set in hardhat config
+
+Run `npx hardhat verify --network polygontestnet <contract-address> <constructor-param1> <constructor-param2> <constructor-param3> ...`.
+
+#### OR
+
+Run `npx hardhat verify --network polygontestnet <contract-address> --constructor-args ./scripts/collection-args.js`.
