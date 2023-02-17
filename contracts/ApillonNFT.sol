@@ -27,8 +27,6 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
      */
     address public royaltiesAddress;
 
-    event Mint(address indexed user, uint256 indexed id, bytes32 traitsHash);
-
     constructor(
         string memory _name,
         string memory _symbol,
