@@ -1,4 +1,4 @@
-# Kingdom NFT contracts
+# Apillon NFT contracts
 
 This repo contains smart contracts that [Kingdom NFT] use.
 
@@ -8,7 +8,7 @@ This repo contains smart contracts that [Kingdom NFT] use.
 
 ### Project setup
 
-Copy `hardhat.sample.config.js` to `hardhat.config.js` and fill out missing data. ()
+Create `secrects.json` with right keys
 
 ### Test
 
@@ -26,18 +26,18 @@ Run `npm run flatten`.
 
 > Smart contract deployment instructions.
 
-### Kingdom
+### Apillon
 
 Make sure the correct collecation name and symbol an URI are set.
 
-`npx hardhat run --network polygontestnet scripts/deploy-collection.js`
+`npx hardhat run --network moonbeamTestnet scripts/deploy-collection.js`
 
 ### Verify contract
 
 > Note: Etherscan API-key needs to be set in hardhat config
 
-Run `npx hardhat verify --network polygontestnet <contract-address> <constructor-param1> <constructor-param2> <constructor-param3> ...`.
+Run `npx hardhat verify --network moonbeamTestnet <contract-address> <constructor-param1> <constructor-param2> <constructor-param3> ...`.
 
 #### OR
 
-Run `npx hardhat verify --network polygontestnet <contract-address> --constructor-args ./scripts/collection-args.js`.
+Run `npx hardhat verify --network moonbeamTestnet <contract-address> --constructor-args ./scripts/collection-args.js`.
