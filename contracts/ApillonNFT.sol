@@ -117,12 +117,8 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         super._transfer(from, to, tokenId);
     }
 
-    function burn(uint tokenId) external {
+    function burn(uint tokenId) external onlyOwner {
         require(isRevokable, "NFT not revokable!");
-        require(
-            msg.sender == owner() || msg.sender == ERC721.ownerOf(tokenId),
-            "Unauthorized."
-        );
         _burn(tokenId);
     }
 
