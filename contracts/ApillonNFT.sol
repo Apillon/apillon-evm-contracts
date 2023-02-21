@@ -8,15 +8,51 @@ import "./ERC2981.sol";
 contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     using Strings for uint256;
 
+    /**
+     * Metadata URI    
+     */
     string baseURI;
-    string public baseExtension = ""; // left it here on purpose, we might move the metadata json to pinata, where the extension needs to be .json
+
+    /**
+     * Metadata URI extension (.json)
+     */
+    string public baseExtension;
+
+    /**
+     * Price per NFT (only for regular users, owner mints for free)
+     */
     uint public price;
 
+    /**
+     * Is soulbound (true = transfer not allowed | false = transfer allowed).
+     */
     bool public immutable isSoulbound;
+
+    /**
+     * Is revokable (burnable by owned).
+     */
     bool public immutable isRevokable;
-    uint public immutable maxSupply; // 0 = unlimited
-    uint public dropStart; // timestamp when mint starts
-    uint public reserve; // reserved for owner to be minted free of charge
+
+    /**
+     * Max supply (0 = unlimited).
+     */
+    uint public immutable maxSupply;
+
+    /**
+     * Reserve (only used if isDrop == true).
+     */
+    uint public reserve;
+
+
+    /**
+     * Is drop (if false, only owner can mint)
+     */
+    bool public immutable isDrop;
+
+    /**
+     * Drop start timestamp
+     */
+    uint public dropStart;
 
     /**
      * Royalties fee percent.
@@ -32,29 +68,31 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         string memory _name,
         string memory _symbol,
         string memory _initBaseURI,
-        address _royaltiesAddress,
-        uint _royaltiesFees,
-        bool _isSoulbound,
-        bool _isRevokable,
+        string memory _baseExtension,
+        bool[] memory _settings,
+        uint _price,
+        uint _dropStart,
         uint _maxSupply,
         uint _reserve,
-        uint _price,
-        uint _dropStart
+        address _royaltiesAddress,
+        uint _royaltiesFees
     ) ERC721(_name, _symbol) {
         baseURI = _initBaseURI;
-        royaltiesAddress = _royaltiesAddress;
-        isSoulbound = _isSoulbound;
-        isRevokable = _isRevokable;
-        maxSupply = _maxSupply;
+        baseExtension = _baseExtension;
+
+        isDrop = _settings[0];
+        isSoulbound = _settings[1];
+        isRevokable = _settings[2];
+        
         price = _price;
         dropStart = _dropStart;
+        maxSupply = _maxSupply;
+        if (isDrop) {
+            require(maxSupply == 0 || _reserve <= maxSupply, "reserve too high.");
+            reserve = _reserve;
+        }
 
-        require (
-            _maxSupply == 0 || _reserve <= _maxSupply, 
-            "Reserve too high."
-        );
-        reserve = _reserve;
-        
+        royaltiesAddress = _royaltiesAddress;
         require(_royaltiesFees <= 100, "royaltiesFees too high.");
         royaltiesFees = _royaltiesFees;
     }
@@ -78,6 +116,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         address _user,
         uint16 _quantity
     ) external payable {
+        require(isDrop, "isDrop == false");
         require(block.timestamp >= dropStart, "Minting not started yet.");
         require(
             msg.value >= price * _quantity, 
@@ -95,14 +134,18 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         }
     }
 
-    function mintReserve(uint16 _quantity, address _receiver)
+    function ownerMint(uint16 _quantity, address _receiver)
         external
         onlyOwner
     {
         uint supply = totalSupply();
-        require(_quantity <= reserve, "The quantity exceeds the reserve.");
-        require(supply + _quantity <= maxSupply);
-        reserve -= _quantity;
+        if (isDrop) {
+            require(_quantity <= reserve, "quantity > reserve"); 
+            reserve -= _quantity;
+        } else {
+            require(maxSupply == 0 || supply + _quantity <= maxSupply);
+        }
+        
         for (uint16 i = 1; i <= _quantity; i++) {
             _safeMint(_receiver, supply + i);
         }
