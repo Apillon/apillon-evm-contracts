@@ -64,6 +64,19 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
      */
     address public royaltiesAddress;
 
+    /**
+     * @param _name - Collection name
+     * @param _symbol - Collection symbol
+     * @param _initBaseURI - Metadata baseURI
+     * @param _baseExtension - Metadata baseExtension
+     * @param _settings - Bool settings [isDrop, isSoulbound, isRevokable]
+     * @param _price - Mint price (only relevant if isDrop == true)
+     * @param _dropStart - drop start (only relevant if isDrop == true)
+     * @param _maxSupply - max supply (0 = unlimited)
+     * @param _reserve - reserve for owner (only relevant if isDrop == true)
+     * @param _royaltiesAddress - royalties address
+     * @param _royaltiesFees - royalties fee
+     */
     constructor(
         string memory _name,
         string memory _symbol,
