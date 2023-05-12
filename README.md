@@ -8,7 +8,7 @@ This repo contains smart contracts that [Apillon NFT](https://app.apillon.io/das
 
 ### Project setup
 
-Create `secrects.json` with right keys
+Create `secrets.json` with right keys
 
 ### Test
 
