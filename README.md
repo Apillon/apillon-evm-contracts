@@ -1,6 +1,6 @@
 # Apillon NFT contracts
 
-This repo contains smart contracts that [Kingdom NFT] use.
+This repo contains smart contracts that [Apillon NFT](https://app.apillon.io/dashboard) use.
 
 ## Development
 
