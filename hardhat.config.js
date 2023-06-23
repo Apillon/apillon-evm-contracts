@@ -23,6 +23,14 @@ module.exports = {
       accounts: [privateKeyTestnet],
       explorer: "https://mumbai.polygonscan.com/",
     },
+    moonbeam: {
+      url: 'https://rpc.api.moonbeam.network', 
+      chainId: 1284,
+      gasPrice: 200000000000, // 5gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://moonbeam.moonscan.io/",
+    },
     moonbeamTestnet: {
       url: 'https://rpc.api.moonbase.moonbeam.network', 
       chainId: 1287,
@@ -30,6 +38,14 @@ module.exports = {
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://moonbase.moonscan.io/",
+    },
+    shibuya: {
+      url: 'https://evm.shibuya.astar.network/', 
+      chainId: 81,
+      gasPrice: 5000000000, // 5gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://shibuya.subscan.io/",
     },
   },
   abiExporter: {
@@ -44,7 +60,8 @@ module.exports = {
     apiKey: {
        polygonMumbai: polygonScanApiKey,
        polygon: polygonScanApiKey,
-       moonbaseAlpha: moonbeamScanApiKey
+       moonbaseAlpha: moonbeamScanApiKey,
+       moonbeam: moonbeamScanApiKey
      }
   },
 };
