@@ -25,6 +25,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.0",
     "@openzeppelin/contracts-upgradeable": "^4.6.0",
-    "@nomiclabs/hardhat-etherscan": "^3.1.1"
+    "@nomiclabs/hardhat-etherscan": "^3.1.1",
+    "@rmrk-team/evm-contracts": "^0.26.0"
   }
 }
