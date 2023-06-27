@@ -10,7 +10,33 @@ const { privateKeyTestnet, polygonScanApiKey, mumbaiRPC, moonbeamScanApiKey } = 
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.18",
+  // solidity: "0.8.18",
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.18",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          outputSelection: {
+            "*": {
+              "*": [
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "devdoc",
+                "userdoc",
+                "metadata",
+                "abi"
+              ]
+            }
+          }
+          //viaIR : true,
+        },
+      },
+    ]
+  },
   networks: {
     hardhat: {
       hardfork: "merge",

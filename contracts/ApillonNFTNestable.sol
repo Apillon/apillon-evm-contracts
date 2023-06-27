@@ -12,7 +12,7 @@ contract ApillonNFTNestable is RMRKNestableImpl {
     bool public immutable isSoulbound;
 
     /**
-     * Is revokable (burnable by owned).
+     * Is revokable (burnable by owner).
      */
     bool public immutable isRevokable;
 
@@ -136,9 +136,6 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         return _burn(tokenId, maxChildrenBurns);
     }
 
-    /**
-     * Set dropStart (only if not started yet)
-     */
     function setDropStart(uint _dropStart) external onlyOwner {
         require(dropStart > block.timestamp, "Minting already started!");
         dropStart = _dropStart;
