@@ -7,6 +7,16 @@ contract ApillonNFTNestable is RMRKNestableImpl {
     using Strings for uint256;
 
     /**
+     * Metadata URI    
+     */
+    string private _tokenUri;
+    
+    /**
+     * Metadata URI extension (.json)
+     */
+    string public baseExtension;
+
+    /**
      * Is soulbound (true = transfer not allowed | false = transfer allowed).
      */
     bool public immutable isSoulbound;
@@ -45,6 +55,7 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         string memory _name,
         string memory _symbol,
         string memory _initBaseURI,
+        string memory _baseExtension,
         bool[] memory _settings,
         uint _dropStart,
         uint _reserve,
@@ -56,6 +67,8 @@ contract ApillonNFTNestable is RMRKNestableImpl {
             _initBaseURI, // tokenURI
             _data
     ) {
+        _tokenUri = _initBaseURI;
+        baseExtension = _baseExtension;
 
         isDrop = _settings[0];
         isSoulbound = _settings[1];
@@ -69,28 +82,27 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         }
     }
 
-    function _preMint(
-        uint256 numToMint
-    ) internal override returns (uint256, uint256) {
-        require(isDrop, "isDrop == false");
-        require(block.timestamp >= dropStart, "Minting not started yet.");
-
-        require(
-            totalSupply() + numToMint <= maxSupply() - reserve
-        );
-
-        return super._preMint(numToMint);
+    function ownerMint(
+        address _receiver,
+        uint16 _numToMint
+    ) external onlyOwner {
+        _ownerMint(_receiver, _numToMint, false, 0);
     }
 
-    function ownerMint(
+    function ownerNestMint(
+        address _receiver,
         uint16 _numToMint, 
-        address _receiver, 
+        uint256 destinationId
+    ) external onlyOwner {
+        _ownerMint(_receiver, _numToMint, true, destinationId);
+    }
+
+    function _ownerMint(
+        address _receiver,
+        uint16 _numToMint, 
         bool nestMint, 
         uint256 destinationId
-    )
-        external
-        onlyOwner
-    {
+    ) private {
         if (isDrop) {
             require(_numToMint <= reserve, "_numToMint > reserve"); 
             reserve -= _numToMint;
@@ -117,17 +129,6 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         }
     }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256
-    ) internal override {
-        require(
-            !isSoulbound || from == address(0) || (to == address(0) && msg.sender == owner()), 
-            "Transfers not allowed!"
-        );
-    }
-
     function burn(
         uint256 tokenId,
         uint256 maxChildrenBurns
@@ -139,5 +140,47 @@ contract ApillonNFTNestable is RMRKNestableImpl {
     function setDropStart(uint _dropStart) external onlyOwner {
         require(dropStart > block.timestamp, "Minting already started!");
         dropStart = _dropStart;
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    ) public view override returns (string memory) {
+        require(
+            _exists(tokenId),
+            "ERC721Metadata: URI query for nonexistent token"
+        );
+        return string(abi.encodePacked(_tokenUri, tokenId.toString(), baseExtension));
+    }
+
+    function setBaseURI(string memory _newBaseURI) external onlyOwner {
+        _tokenUri = _newBaseURI;
+    }
+
+    function setBaseExtension(string memory _newBaseExtension) external onlyOwner {
+        baseExtension = _newBaseExtension;
+    }
+
+    function _preMint(
+        uint256 numToMint
+    ) internal override returns (uint256, uint256) {
+        require(isDrop, "isDrop == false");
+        require(block.timestamp >= dropStart, "Minting not started yet.");
+
+        require(
+            totalSupply() + numToMint <= maxSupply() - reserve
+        );
+
+        return super._preMint(numToMint);
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256
+    ) internal override {
+        require(
+            !isSoulbound || from == address(0) || (to == address(0) && msg.sender == owner()), 
+            "Transfers not allowed!"
+        );
     }
 }

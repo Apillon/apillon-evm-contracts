@@ -11,7 +11,7 @@ async function main() {
 
   // Mint Child NFT on deployer address
   // example: https://mumbai.polygonscan.com/tx/0x52eecefac3a841b4283d18d8dc269197bcbca464cea2c2e0b61db91c9beefce5
-  // const tx = await child.ownerMint(1, deployer.address, false, 0);
+  // const tx = await child.ownerMint(deployer.address, 1);
   // await tx.wait();
   // console.log(
   //   "ownerMint: %stx/%s",
@@ -24,7 +24,7 @@ async function main() {
   // Mint Child NFT and nest it to Parent NFT
   // example: https://mumbai.polygonscan.com/tx/0x0d39e162de25bd3c8c818b420e9bba97919b1ea4b20b10949985276526ba876d
   // const parentID = 2;
-  // const tx = await child.ownerMint(1, parent.address, true, parentID);
+  // const tx = await child.ownerNestMint(parent.address, 1, parentID);
   // await tx.wait();
   // console.log(
   //   "ownerMint: %stx/%s",

@@ -18,6 +18,7 @@ describe("ApillonNFTNestable", function() {
       "Test", // _name
       "XXX", // _symbol
       "https://api.example.com/nfts/1/", // _initBaseURI
+      ".json", // baseExtension
       [false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable]
       dropStartFuture, //  _dropStart
       6, //  _reserve
@@ -36,6 +37,7 @@ describe("ApillonNFTNestable", function() {
       "Test", // _name
       "XXX", // _symbol
       "https://api.example.com/nfts/1/", // _initBaseURI
+      ".json", // baseExtension
       [true, true, true], //  _settings - [isDrop, isSoulbound, isRevokable]
       dropStartFuture, //  _dropStart
       6, //  _reserve
@@ -58,12 +60,12 @@ describe("ApillonNFTNestable", function() {
   });
 
   it("tokenURI should be same as set in constructor", async function() {
-    await CC_onlyOwner.ownerMint(3, owner.address, false, 0);
-    expect(await CC_onlyOwner.tokenURI(3)).to.equal("https://api.example.com/nfts/1/3");
+    await CC_onlyOwner.ownerMint(owner.address, 3);
+    expect(await CC_onlyOwner.tokenURI(3)).to.equal("https://api.example.com/nfts/1/3.json");
   });
 
   it("CC_onlyOwner only owner can mint", async function() {
-    await expect(CC_onlyOwner.connect(account1).ownerMint(1, owner.address, false, 0))
+    await expect(CC_onlyOwner.connect(account1).ownerMint(owner.address, 1))
     .to.be.revertedWith('RMRKNotOwner()');
 
     await expect(CC_onlyOwner.connect(account1).mint(owner.address, 1))
@@ -71,15 +73,15 @@ describe("ApillonNFTNestable", function() {
   });
 
   it("CC_onlyOwner allow only maxSupply", async function() {
-    await CC_onlyOwner.ownerMint(6, owner.address, false, 0);
-    await CC_onlyOwner.ownerMint(4, owner.address, false, 0);
-    await expect(CC_onlyOwner.ownerMint(1, owner.address, false, )).to.be.reverted;
+    await CC_onlyOwner.ownerMint(owner.address, 6);
+    await CC_onlyOwner.ownerMint(owner.address, 4);
+    await expect(CC_onlyOwner.ownerMint(owner.address, 1)).to.be.reverted;
   });
 
   it("CC_drop_soulbound_revokable allow only reserve", async function() {
-    await CC_drop_soulbound_revokable.ownerMint(2, owner.address, false, 0);
-    await CC_drop_soulbound_revokable.ownerMint(4, owner.address, false, 0);
-    await expect(CC_drop_soulbound_revokable.ownerMint(1, owner.address, false, 0))
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 4);
+    await expect(CC_drop_soulbound_revokable.ownerMint(owner.address, 1))
       .to.be.revertedWith('_numToMint > reserve');
   });
 
@@ -100,11 +102,11 @@ describe("ApillonNFTNestable", function() {
   });
 
   it("Check burn availabilty", async function() {
-    await CC_onlyOwner.ownerMint(6, owner.address, false, 0);
+    await CC_onlyOwner.ownerMint(owner.address, 6);
     await expect(CC_onlyOwner.connect(account1)['burn(uint256,uint256)'](1, 0)).to.be.revertedWith('RMRKNotOwner()');
     await expect(CC_onlyOwner['burn(uint256,uint256)'](1, 0)).to.be.revertedWith('NFT not revokable!');
 
-    await CC_drop_soulbound_revokable.ownerMint(6, owner.address, false, 0);
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 6);
     await expect(CC_drop_soulbound_revokable.connect(account1)['burn(uint256,uint256)'](1, 0)).to.be.revertedWith('RMRKNotOwner()');
     await CC_drop_soulbound_revokable['burn(uint256,uint256)'](1, 0);
 
@@ -112,10 +114,10 @@ describe("ApillonNFTNestable", function() {
   });
 
   it("Check transfer availabilty", async function() {
-    await CC_onlyOwner.ownerMint(6, owner.address, false, 0);
+    await CC_onlyOwner.ownerMint(owner.address, 6);
     await CC_onlyOwner.transferFrom(owner.address, account1.address, 1);
 
-    await CC_drop_soulbound_revokable.ownerMint(6, owner.address, false, 0);
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 6);
     await expect(CC_drop_soulbound_revokable.transferFrom(owner.address, account1.address, 1)).to.be.revertedWith('Transfers not allowed!');
   });
 
@@ -140,6 +142,26 @@ describe("ApillonNFTNestable", function() {
     const resp = await CC_onlyOwner.royaltyInfo(0, 100);
     expect(resp.receiver).to.equal(royalties.address);
     expect(resp.royaltyAmount).to.equal(5);
+  });
+
+  it("Change baseURI", async function() {
+    await CC_onlyOwner.ownerMint(owner.address, 1);
+
+    expect(await CC_onlyOwner.tokenURI(1)).to.equal("https://api.example.com/nfts/1/1.json");
+
+    const baseURI = 'https://fakeurl.com/';
+    const baseEXT = '.txt';
+
+    await expect(CC_onlyOwner.connect(account1).setBaseURI(baseURI)
+    ).to.be.revertedWith('RMRKNotOwner()');
+
+    await expect(CC_onlyOwner.connect(account1).setBaseExtension(baseEXT)
+    ).to.be.revertedWith('RMRKNotOwner()');
+
+    await CC_onlyOwner.setBaseURI(baseURI);
+    await CC_onlyOwner.setBaseExtension(baseEXT);
+    
+    expect(await CC_onlyOwner.tokenURI(1)).to.equal(`${baseURI}1${baseEXT}`);
   });
 
   it("withdrawRaised", async function() {
