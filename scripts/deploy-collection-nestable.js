@@ -6,6 +6,7 @@ async function main() {
     "ChildName",
     "ChildSymbol",
     "https://api.example.com/nfts/",
+    "",
     [true, false, false],
     0, // _dropStart
     50, // _reserve
