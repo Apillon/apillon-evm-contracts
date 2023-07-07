@@ -184,4 +184,16 @@ describe("ApillonNFTNestable", function() {
     expect(ownerBalanceAfter.add(gasSpent).sub(ownerBalanceBefore)).to.equal(ethers.utils.parseEther('0.01'));
   });
 
+  it("Check walletOfOwner function", async function() {
+    await CC_onlyOwner.ownerMint(account1.address, 2);
+
+    expect(await CC_onlyOwner.balanceOf(account1.address)).to.equal(2);
+    const ids = await CC_onlyOwner.walletOfOwner(account1.address);
+    expect(ids[0]).to.equal(1);
+    expect(ids[1]).to.equal(2);
+
+    await CC_onlyOwner.ownerMint(account2.address, 1);
+    expect(await CC_onlyOwner.balanceOf(account2.address)).to.equal(1);
+  });
+
 });

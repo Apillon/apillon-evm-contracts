@@ -58,7 +58,8 @@ module.exports = {
       explorer: "https://moonbeam.moonscan.io/",
     },
     moonbeamTestnet: {
-      url: 'https://rpc.api.moonbase.moonbeam.network', 
+      // url: 'https://rpc.api.moonbase.moonbeam.network', 
+      url: 'https://moonbeam-alpha.api.onfinality.io/public', 
       chainId: 1287,
       gasPrice: 5000000000, // 5gwei
       gas: 2000000,

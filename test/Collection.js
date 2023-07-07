@@ -25,7 +25,7 @@ describe("ApillonNFT", function() {
       10, //  _maxSupply
       6, //  _reserve
       royalties.address, // _royaltiesAddress
-      5, // _royaltiesFees
+      500, // _royaltiesFees, 100 = 1%
     );
     await CC_onlyOwner.deployed();
 

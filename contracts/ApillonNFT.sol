@@ -106,7 +106,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         }
 
         royaltiesAddress = _royaltiesAddress;
-        require(_royaltiesFees <= 100, "royaltiesFees too high.");
+        require(_royaltiesFees <= 10000, "royaltiesFees too high.");
         royaltiesFees = _royaltiesFees;
     }
 
@@ -244,6 +244,14 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         returns (address receiver, uint256 royaltyAmount)
     {
         receiver = royaltiesAddress;
-        royaltyAmount = (value * royaltiesFees) / 100;
+        royaltyAmount = (value * royaltiesFees) / 10000;
+    }
+
+    function getRoyaltyRecipient() public view virtual returns (address) {
+        return royaltiesAddress;
+    }
+
+    function getRoyaltyPercentage() public view virtual returns (uint256) {
+        return royaltiesFees;
     }
 }
