@@ -183,7 +183,7 @@ describe("ApillonNFT", function() {
     expect(ownerBalanceAfter.add(gasSpent).sub(ownerBalanceBefore)).to.equal(ethers.utils.parseEther('0.01'));
   });
 
-  it("Check walletOfOwner function", async function() {
+  it("Check walletOfOwner & allTokens function", async function() {
     await CC_onlyOwner.ownerMint(account1.address, 2);
 
     expect(await CC_onlyOwner.balanceOf(account1.address)).to.equal(2);
@@ -193,5 +193,8 @@ describe("ApillonNFT", function() {
 
     await CC_onlyOwner.ownerMint(account2.address, 1);
     expect(await CC_onlyOwner.balanceOf(account2.address)).to.equal(1);
+
+    const idsAll = await CC_onlyOwner.allTokens();
+    expect(idsAll.length).to.equal(3);
   });
 });

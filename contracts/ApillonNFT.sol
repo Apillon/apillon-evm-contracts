@@ -188,6 +188,16 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         return tokenIds;
     }
 
+    function allTokens() external view returns (uint256[] memory)
+    {
+        uint256 supply = totalSupply();
+        uint256[] memory tokenIds = new uint256[](supply);
+        for (uint256 i; i < supply; i++) {
+            tokenIds[i] = tokenByIndex(i);
+        }
+        return tokenIds;
+    }
+
     function tokenURI(uint256 tokenId)
     public
     view
