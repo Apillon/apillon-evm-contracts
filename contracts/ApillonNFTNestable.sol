@@ -198,7 +198,7 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         if (from == address(0)) {
             _addTokenToAllTokensEnumeration(tokenId);
         } else if (from != to) {
-            _removeTokenFromOwnerEnumeration(from, tokenId);
+            _removeTokenFromOwnerEnumeration(from, to, tokenId);
         }
         if (to == address(0)) {
             _removeTokenFromAllTokensEnumeration(tokenId);
@@ -228,11 +228,17 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         _allTokens.push(tokenId);
     }
 
-    function _removeTokenFromOwnerEnumeration(address from, uint256 tokenId) private {
+    function _removeTokenFromOwnerEnumeration(address from, address to, uint256 tokenId) private {
         // To prevent a gap in from's tokens array, we store the last token in the index of the token to delete, and
         // then delete the last slot (swap and pop).
 
-        uint256 lastTokenIndex = balanceOf(from) - 1;
+        uint256 lastTokenIndex = balanceOf(from);
+        if (to != address(0)) {
+            // Fix for non burn transfers
+            // Needed because function _burn inside RMRKNestable.sol does _balances[immediateOwner] -= 1
+            // before calling _beforeTokenTransfer
+            lastTokenIndex -= 1;
+        }
         uint256 tokenIndex = _ownedTokensIndex[tokenId];
 
         // When the token to delete is the last token, the swap operation is unnecessary
