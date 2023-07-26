@@ -52,7 +52,24 @@ describe("ApillonNFTNestable", function() {
     );
     await CC_drop_soulbound_revokable.deployed();
 
-
+    CC_burnable = await CContract.deploy(
+      "Test", // _name
+      "XXX", // _symbol
+      "https://api.example.com/nfts/1/", // _initBaseURI
+      ".json", // baseExtension
+      [false, false, true], //  _settings - [isDrop, isSoulbound, isRevokable]
+      dropStartFuture, //  _dropStart
+      6, //  _reserve
+      {
+        erc20TokenAddress: ethers.constants.AddressZero,
+        tokenUriIsEnumerable: true,
+        royaltyRecipient: royalties.address,
+        royaltyPercentageBps: 500, // 1 basis point == 0.01%
+        maxSupply: 10,
+        pricePerMint: ethers.utils.parseEther('0.01'), //  _price
+      }
+    );
+    await CC_onlyOwner.deployed();
   });
 
   it("Deployer should be the owner of the contract", async function() {
@@ -113,6 +130,16 @@ describe("ApillonNFTNestable", function() {
     await expect(CC_drop_soulbound_revokable['burn(uint256,uint256)'](10, 0)).to.be.revertedWith('ERC721InvalidTokenId()');
   });
 
+  it("Check owner burn", async function() {
+    await CC_burnable.ownerMint(owner.address, 1);
+    const ids = await CC_burnable.walletOfOwner(owner.address);
+    expect(ids.length).to.equal(1);
+    expect(ids[0]).to.equal(1);
+    await CC_burnable.connect(owner)['burn(uint256)'](1)
+    const idsBurned = await CC_burnable.walletOfOwner(owner.address);
+    expect(idsBurned.length).to.equal(0);
+  });
+
   it("Check transfer availabilty", async function() {
     await CC_onlyOwner.ownerMint(owner.address, 6);
     await CC_onlyOwner.transferFrom(owner.address, account1.address, 1);
@@ -160,7 +187,7 @@ describe("ApillonNFTNestable", function() {
 
     await CC_onlyOwner.setBaseURI(baseURI);
     await CC_onlyOwner.setBaseExtension(baseEXT);
-    
+
     expect(await CC_onlyOwner.tokenURI(1)).to.equal(`${baseURI}1${baseEXT}`);
   });
 
