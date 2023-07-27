@@ -19,7 +19,7 @@ describe("ApillonNFTNestable", function() {
       "XXX", // _symbol
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // baseExtension
-      [false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable]
+      [false, false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable, allowOrphan]
       dropStartFuture, //  _dropStart
       6, //  _reserve
       {
@@ -38,7 +38,7 @@ describe("ApillonNFTNestable", function() {
       "XXX", // _symbol
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // baseExtension
-      [true, true, true], //  _settings - [isDrop, isSoulbound, isRevokable]
+      [true, true, true, false], //  _settings - [isDrop, isSoulbound, isRevokable, allowOrphan]
       dropStartFuture, //  _dropStart
       6, //  _reserve
       {
@@ -57,7 +57,7 @@ describe("ApillonNFTNestable", function() {
       "XXX", // _symbol
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // baseExtension
-      [false, false, true], //  _settings - [isDrop, isSoulbound, isRevokable]
+      [false, false, true, true], //  _settings - [isDrop, isSoulbound, isRevokable, allowOrphan]
       dropStartFuture, //  _dropStart
       6, //  _reserve
       {
@@ -138,6 +138,42 @@ describe("ApillonNFTNestable", function() {
     await CC_burnable.connect(owner)['burn(uint256)'](1)
     const idsBurned = await CC_burnable.walletOfOwner(owner.address);
     expect(idsBurned.length).to.equal(0);
+  });
+
+  it("Check burn NOT allowing orphans", async function() {
+    const parentContract = CC_drop_soulbound_revokable;
+    const childContract = CC_burnable;
+
+    // Mint tokenId 1 as parent (parentId)
+    await parentContract.ownerMint(owner.address, 1);
+
+    // Mint tokenId 1,2 as child
+    const parentId = 1;
+    await childContract.ownerNestMint(parentContract.address, 2, parentId);
+
+    // Accept both child 2,3
+    await parentContract.acceptChild(parentId, 0, childContract.address, 1);
+    await parentContract.acceptChild(parentId, 0, childContract.address, 2);
+
+    const ids = await parentContract.walletOfOwner(owner.address);
+    expect(ids.length).to.equal(1);
+    expect(ids[0]).to.equal(1);
+    
+    await expect(parentContract.connect(owner)['burn(uint256)'](parentId))
+      .to.be.revertedWith('Orphan not allowed');
+
+    // Try burning leaving only one orphan
+    await expect(parentContract.connect(owner)['burn(uint256,uint256)'](parentId, 1))
+      .to.be.revertedWith('Orphan not allowed');
+
+    await parentContract.connect(owner)['burn(uint256,uint256)'](parentId, 2);
+
+    const idsBurned = await parentContract.walletOfOwner(owner.address);
+    expect(idsBurned.length).to.equal(0);
+
+    // Check if orphans were also burned
+    const idsOrphans = await childContract.walletOfOwner(parentContract.address);
+    expect(idsOrphans.length).to.equal(0);
   });
 
   it("Check transfer availabilty", async function() {

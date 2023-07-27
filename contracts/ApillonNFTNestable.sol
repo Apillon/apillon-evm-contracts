@@ -144,8 +144,13 @@ contract ApillonNFTNestable is RMRKNestableImpl {
     function burn(
         uint256 tokenId,
         uint256 maxChildrenBurns
-    ) public override onlyOwner returns (uint256) {
+    ) public override returns (uint256) {
+        require(tx.origin == owner(), "RMRKNotOwner()");
         require(isRevokable, "NFT not revokable!");
+        require(
+            childrenOf(tokenId).length <= maxChildrenBurns, 
+            "Orphan not allowed"
+        );
         return _burn(tokenId, maxChildrenBurns);
     }
 
