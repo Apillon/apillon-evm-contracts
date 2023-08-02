@@ -101,7 +101,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         dropStart = _dropStart;
         maxSupply = _maxSupply;
         if (isDrop) {
-            require(maxSupply == 0 || _reserve <= maxSupply, "reserve too high.");
+            require(_reserve <= maxSupply, "reserve too high.");
             reserve = _reserve;
         }
 
@@ -139,7 +139,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         uint256 supply = totalSupply();
 
         require(
-            maxSupply == 0 || supply + numToMint <= maxSupply - reserve
+            supply + numToMint <= maxSupply - reserve
         );
 
         for (uint16 i = 1; i <= numToMint; i++) {
@@ -156,7 +156,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
             require(numToMint <= reserve, "quantity > reserve"); 
             reserve -= numToMint;
         } else {
-            require(maxSupply == 0 || supply + numToMint <= maxSupply);
+            require(supply + numToMint <= maxSupply);
         }
         
         for (uint16 i = 1; i <= numToMint; i++) {
