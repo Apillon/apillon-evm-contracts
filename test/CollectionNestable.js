@@ -160,11 +160,11 @@ describe("ApillonNFTNestable", function() {
     expect(ids[0]).to.equal(1);
     
     await expect(parentContract.connect(owner)['burn(uint256)'](parentId))
-      .to.be.revertedWith('Orphan not allowed');
+      .to.be.revertedWith(`RMRKMaxRecursiveBurnsReached("${childContract.address}", 1)`);
 
     // Try burning leaving only one orphan
     await expect(parentContract.connect(owner)['burn(uint256,uint256)'](parentId, 1))
-      .to.be.revertedWith('Orphan not allowed');
+      .to.be.revertedWith(`RMRKMaxRecursiveBurnsReached("${childContract.address}", 2)`);
 
     await parentContract.connect(owner)['burn(uint256,uint256)'](parentId, 2);
 
@@ -260,6 +260,22 @@ describe("ApillonNFTNestable", function() {
 
     const idsAll = await CC_onlyOwner.allTokens();
     expect(idsAll.length).to.equal(3);
+  });
+
+  it("Mint parent, nest mint child, prevent burn child, burn parent + children", async function() {
+    const parentId = 1;
+    const childId = 2;
+    await CC_burnable.ownerMint(account1.address, 1);
+    await CC_burnable.ownerNestMint(CC_burnable.address, 1, parentId);
+
+    // Accept child
+    await CC_burnable.connect(account1).acceptChild(parentId, 0, CC_burnable.address, childId);
+
+    // Try burning only child
+    await expect(CC_burnable['burn(uint256,uint256)'](childId, 0)).to.be.revertedWith('Cannot burn nested NFTs');
+
+    // Burn parent + children
+    await CC_burnable['burn(uint256,uint256)'](parentId, 1);
   });
 
 });
