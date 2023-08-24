@@ -107,6 +107,28 @@ describe("ApillonNFT", function() {
     await expect(CC_drop_soulbound_revokable.burn(10)).to.be.revertedWith('ERC721: invalid token ID');
   });
 
+  it("Check mint after burn", async function() {
+    //mint 2 NFTs
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
+    let ids = await CC_drop_soulbound_revokable.walletOfOwner(owner.address);
+    expect(ids.length).to.equal(2);
+    expect(ids[0]).to.equal(1);
+    expect(ids[1]).to.equal(2);
+
+    //burn 1 NFTs
+    await CC_drop_soulbound_revokable.connect(owner).burn(1)
+    ids = await CC_drop_soulbound_revokable.walletOfOwner(owner.address);
+    expect(ids.length).to.equal(1);
+
+    //mint 2 NFTs
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
+    ids = await CC_drop_soulbound_revokable.walletOfOwner(owner.address);
+    expect(ids.length).to.equal(3);
+    expect(ids[0]).to.equal(2);
+    expect(ids[1]).to.equal(3);
+    expect(ids[2]).to.equal(4);
+  });
+
   it("Check transfer availabilty", async function() {
     await CC_onlyOwner.ownerMint(owner.address, 6);
     await CC_onlyOwner.transferFrom(owner.address, account1.address, 1);
@@ -159,7 +181,7 @@ describe("ApillonNFT", function() {
 
     await CC_onlyOwner.setBaseURI(baseURI);
     await CC_onlyOwner.setBaseExtension(baseEXT);
-    
+
     expect(await CC_onlyOwner.tokenURI(1)).to.equal(`${baseURI}1${baseEXT}`);
   });
 
