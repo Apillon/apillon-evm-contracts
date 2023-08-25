@@ -65,6 +65,12 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     address public royaltiesAddress;
 
     /**
+     * Last minted id.
+     */
+    uint256 public lastId;
+
+
+    /**
      * @param _name - Collection name
      * @param _symbol - Collection symbol
      * @param _initBaseURI - Metadata baseURI
@@ -136,14 +142,13 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
             "Insufficient amount."
         );
 
-        uint256 supply = totalSupply();
-
         require(
-            supply + numToMint <= maxSupply - reserve
+            lastId + numToMint <= maxSupply - reserve
         );
 
         for (uint16 i = 1; i <= numToMint; i++) {
-            _safeMint(to, supply + i);
+            lastId += 1;
+            _safeMint(to, lastId);
         }
     }
 
@@ -151,16 +156,16 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         address to,
         uint256 numToMint
     ) external onlyOwner {
-        uint supply = totalSupply();
         if (isDrop) {
             require(numToMint <= reserve, "quantity > reserve"); 
             reserve -= numToMint;
         } else {
-            require(supply + numToMint <= maxSupply);
+            require(lastId + numToMint <= maxSupply);
         }
         
         for (uint16 i = 1; i <= numToMint; i++) {
-            _safeMint(to, supply + i);
+            lastId += 1;
+            _safeMint(to, lastId);
         }
     }
 
