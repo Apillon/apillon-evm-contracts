@@ -55,6 +55,11 @@ contract ApillonNFTNestable is RMRKNestableImpl {
     mapping(uint256 => uint256) private _allTokensIndex;
 
     /**
+     * Last minted id.
+     */
+    uint256 public lastId;
+
+    /**
      * @param _name - Collection name
      * @param _symbol - Collection symbol
      * @param _initBaseURI - Metadata baseURI
@@ -121,24 +126,20 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         }
 
         if (_numToMint == uint256(0)) revert RMRKMintZero();
-        if (_numToMint + _totalSupply > _maxSupply) revert RMRKMintOverMax();
+        if (_numToMint + lastId > _maxSupply) revert RMRKMintOverMax();
 
-        uint256 nextToken = _totalSupply + 1;
         unchecked {
             _totalSupply += _numToMint;
         }
-        uint256 totalSupplyOffset = _totalSupply + 1;
 
-        for (uint256 i = nextToken; i < totalSupplyOffset; ) {
+        for (uint256 i = lastId; i < lastId + _numToMint; i++) {
             if (nestMint) {
-                _nestMint(_receiver, i, destinationId, "");
+                _nestMint(_receiver, i + 1, destinationId, "");
             } else {
-                _safeMint(_receiver, i, "");
-            }
-            unchecked {
-                ++i;
+                _safeMint(_receiver, i + 1, "");
             }
         }
+        lastId += _numToMint;
     }
 
     function burn(
@@ -209,6 +210,9 @@ contract ApillonNFTNestable is RMRKNestableImpl {
             _removeTokenFromOwnerEnumeration(from, to, tokenId);
         }
         if (to == address(0)) {
+            unchecked {
+                _totalSupply -= 1;
+            }
             _removeTokenFromAllTokensEnumeration(tokenId);
         } else if (to != from) {
             _addTokenToOwnerEnumeration(to, tokenId);
