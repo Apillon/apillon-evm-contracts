@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.21;
 
-import "@rmrk-team/evm-contracts/contracts/implementations/nativeTokenPay/RMRKNestableImpl.sol";
+import "@rmrk-team/evm-contracts/contracts/implementations/lazyMintNative/RMRKNestableLazyMintNative.sol";
 
-contract ApillonNFTNestable is RMRKNestableImpl {
+contract ApillonNFTNestable is RMRKNestableLazyMintNative {
     using Strings for uint256;
 
     /**
@@ -77,7 +77,7 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         uint _dropStart,
         uint _reserve,
         InitData memory _data
-    ) RMRKNestableImpl(
+    ) RMRKNestableLazyMintNative(
             _name,
             _symbol,
             _initBaseURI, // collectionMetadata
@@ -181,7 +181,7 @@ contract ApillonNFTNestable is RMRKNestableImpl {
         baseExtension = _newBaseExtension;
     }
 
-    function _preMint(
+    function _prepareMint(
         uint256 numToMint
     ) internal override returns (uint256, uint256) {
         require(isDrop, "isDrop == false");
@@ -191,7 +191,7 @@ contract ApillonNFTNestable is RMRKNestableImpl {
             totalSupply() + numToMint <= maxSupply() - reserve
         );
 
-        return super._preMint(numToMint);
+        return super._prepareMint(numToMint);
     }
 
     function _beforeTokenTransfer(

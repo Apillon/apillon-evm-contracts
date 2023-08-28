@@ -14,7 +14,7 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.18",
+        version: "0.8.21",
         settings: {
           optimizer: {
             enabled: true,
@@ -31,15 +31,15 @@ module.exports = {
                 "abi"
               ]
             }
-          }
-          //viaIR : true,
+          },
+          viaIR : true,
         },
       },
     ]
   },
   networks: {
     hardhat: {
-      hardfork: "merge",
+      hardfork: "shanghai",
     },
     polygonMumbai: {
       url: mumbaiRPC, 

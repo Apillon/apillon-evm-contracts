@@ -32,7 +32,7 @@ describe("ApillonNFTNestable", function() {
       }
     );
     await CC_onlyOwner.deployed();
-
+      
     CC_drop_soulbound_revokable = await CContract.deploy(
       "Test", // _name
       "XXX", // _symbol
@@ -69,7 +69,7 @@ describe("ApillonNFTNestable", function() {
         pricePerMint: ethers.utils.parseEther('0.01'), //  _price
       }
     );
-    await CC_onlyOwner.deployed();
+    await CC_burnable.deployed();
   });
 
   it("Deployer should be the owner of the contract", async function() {
@@ -112,7 +112,7 @@ describe("ApillonNFTNestable", function() {
     await CC_drop_soulbound_revokable.setDropStart(dropStartPresent);
 
     await expect(CC_drop_soulbound_revokable.connect(account1).mint(owner.address, 2))
-      .to.be.revertedWith('RMRKMintUnderpriced()');
+      .to.be.revertedWith('RMRKWrongValueSent()');
 
     await CC_drop_soulbound_revokable.connect(account1)
       .mint(owner.address, 2, {value: ethers.utils.parseEther('0.01').mul('2')});
@@ -123,9 +123,15 @@ describe("ApillonNFTNestable", function() {
     await expect(CC_onlyOwner.connect(account1)['burn(uint256,uint256)'](1, 0)).to.be.revertedWith('RMRKNotOwner()');
     await expect(CC_onlyOwner['burn(uint256,uint256)'](1, 0)).to.be.revertedWith('NFT not revokable!');
 
-    await CC_drop_soulbound_revokable.ownerMint(owner.address, 6);
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 4);
+    expect(await CC_drop_soulbound_revokable.totalSupply()).to.equal(4);
     await expect(CC_drop_soulbound_revokable.connect(account1)['burn(uint256,uint256)'](1, 0)).to.be.revertedWith('RMRKNotOwner()');
     await CC_drop_soulbound_revokable['burn(uint256,uint256)'](1, 0);
+
+    expect(await CC_drop_soulbound_revokable.totalSupply()).to.equal(3);
+    await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
+
+    expect(await CC_drop_soulbound_revokable.totalSupply()).to.equal(5);
 
     await expect(CC_drop_soulbound_revokable['burn(uint256,uint256)'](10, 0)).to.be.revertedWith('ERC721InvalidTokenId()');
   });
