@@ -25,8 +25,6 @@ describe("ApillonNFTNestable", function() {
       dropStartFuture, //  _dropStart
       6, //  _reserve
       {
-        erc20TokenAddress: ethers.constants.AddressZero,
-        tokenUriIsEnumerable: true,
         royaltyRecipient: royalties.address,
         royaltyPercentageBps: 500, // 1 basis point == 0.01%
         maxSupply: 10,
@@ -44,8 +42,6 @@ describe("ApillonNFTNestable", function() {
       dropStartFuture, //  _dropStart
       6, //  _reserve
       {
-        erc20TokenAddress: ethers.constants.AddressZero,
-        tokenUriIsEnumerable: true,
         royaltyRecipient: royalties.address,
         royaltyPercentageBps: 500, // 1 basis point == 0.01%
         maxSupply: 10,
@@ -63,8 +59,6 @@ describe("ApillonNFTNestable", function() {
       dropStartFuture, //  _dropStart
       6, //  _reserve
       {
-        erc20TokenAddress: ethers.constants.AddressZero,
-        tokenUriIsEnumerable: true,
         royaltyRecipient: royalties.address,
         royaltyPercentageBps: 500, // 1 basis point == 0.01%
         maxSupply: 10,
@@ -76,6 +70,12 @@ describe("ApillonNFTNestable", function() {
 
   it("Deployer should be the owner of the contract", async function() {
     expect(await CC_onlyOwner.owner()).to.equal(owner.address);
+  });
+
+  it("Check maxSupply", async function() {
+    expect(await CC_onlyOwner.maxSupply()).to.equal(10);
+    expect(await CC_drop_soulbound_revokable.maxSupply()).to.equal(10);
+    expect(await CC_burnable.maxSupply()).to.equal(10);
   });
 
   it("tokenURI should be same as set in constructor", async function() {
