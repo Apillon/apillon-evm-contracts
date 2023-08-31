@@ -125,21 +125,30 @@ contract ApillonNFTNestable is RMRKNestableLazyMintNative {
             reserve -= _numToMint;
         }
 
-        if (_numToMint == uint256(0)) revert RMRKMintZero();
-        if (_numToMint + lastId > _maxSupply) revert RMRKMintOverMax();
+        (uint256 nextToken, uint256 totalSupplyOffset) = _prepareMint(
+            _numToMint
+        );
 
-        unchecked {
-            _totalSupply += _numToMint;
-        }
-
-        for (uint256 i = lastId; i < lastId + _numToMint; i++) {
+        for (uint256 i = nextToken; i < totalSupplyOffset; ) {
             if (nestMint) {
-                _nestMint(_receiver, i + 1, destinationId, "");
+                _nestMint(_receiver, i, destinationId, "");
             } else {
-                _safeMint(_receiver, i + 1, "");
+                _safeMint(_receiver, i, "");
+            }
+            unchecked {
+                ++i;
             }
         }
-        lastId += _numToMint;
+    }
+
+    function mint(
+        address to,
+        uint256 numToMint
+    ) public payable override returns (uint256) {
+        require(isDrop, "isDrop == false");
+        require(block.timestamp >= dropStart, "Minting not started yet.");
+
+        return super.mint(to, numToMint);
     }
 
     function burn(
@@ -183,15 +192,14 @@ contract ApillonNFTNestable is RMRKNestableLazyMintNative {
 
     function _prepareMint(
         uint256 numToMint
-    ) internal override returns (uint256, uint256) {
-        require(isDrop, "isDrop == false");
-        require(block.timestamp >= dropStart, "Minting not started yet.");
+    ) internal override returns (uint256 nextToken, uint256 totalSupplyOffset) {
+        (nextToken, totalSupplyOffset) = super._prepareMint(numToMint);
 
+        // totalSupplyOffset - 1, because totalSupplyOffset is set to latest minted token + 1
         require(
-            totalSupply() + numToMint <= maxSupply() - reserve
+            totalSupplyOffset - 1 <= maxSupply() - reserve, 
+            "RMRKMintOverMax()_2"
         );
-
-        return super._prepareMint(numToMint);
     }
 
     function _beforeTokenTransfer(
@@ -199,6 +207,7 @@ contract ApillonNFTNestable is RMRKNestableLazyMintNative {
         address to,
         uint256 tokenId
     ) internal override {
+        super._beforeTokenTransfer(from, to, tokenId);
         require(
             !isSoulbound || from == address(0) || (to == address(0) && msg.sender == owner()), 
             "Transfers not allowed!"
@@ -210,9 +219,6 @@ contract ApillonNFTNestable is RMRKNestableLazyMintNative {
             _removeTokenFromOwnerEnumeration(from, to, tokenId);
         }
         if (to == address(0)) {
-            unchecked {
-                _totalSupply -= 1;
-            }
             _removeTokenFromAllTokensEnumeration(tokenId);
         } else if (to != from) {
             _addTokenToOwnerEnumeration(to, tokenId);

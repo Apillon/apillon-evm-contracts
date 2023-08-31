@@ -32,7 +32,7 @@ module.exports = {
               ]
             }
           },
-          viaIR : true,
+          // viaIR : true,
         },
       },
     ]

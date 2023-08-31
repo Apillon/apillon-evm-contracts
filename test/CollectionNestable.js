@@ -3,6 +3,8 @@ const { expect } = require("chai");
 describe("ApillonNFTNestable", function() {
   let CC, reserve, cost, owner, account1, account2, royalties, dropStartPresent, dropStartFuture;
 
+  let curDate = Math.ceil(new Date().getTime() / 1000);
+
   before(async () => {
     await hre.network.provider.send("hardhat_reset");
   });
@@ -11,8 +13,8 @@ describe("ApillonNFTNestable", function() {
     [ owner, account1, account2, royalties ] = await ethers.getSigners();
     const CContract = await ethers.getContractFactory("ApillonNFTNestable");
 
-    dropStartPresent = Math.ceil(new Date().getTime() / 1000); // present
-    dropStartFuture = Math.ceil(new Date().getTime() / 1000) + 3600; // 1h in future
+    dropStartPresent = curDate; // present
+    dropStartFuture = curDate + 3600; // 1h in future
 
     CC_onlyOwner = await CContract.deploy(
       "Test", // _name
@@ -282,6 +284,92 @@ describe("ApillonNFTNestable", function() {
 
     // Burn parent + children
     await CC_burnable['burn(uint256,uint256)'](parentId, 1);
+  });
+
+  it("Mint all regular, than mint reserve (owner)", async function() {
+
+    // max supply: 10
+    // reserve: 6
+    // regular mint: 4
+
+    await ethers.provider.send("evm_increaseTime", [3602]);
+    curDate += 3602;
+
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 5)).to.be.revertedWith('RMRKMintOverMax()_2');
+    
+    await CC_drop_soulbound_revokable.mint(account1.address, 4, {value: ethers.utils.parseEther('0.01').mul(4)});
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 1)).to.be.revertedWith('RMRKMintOverMax()_2');
+    
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 2);
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 4);
+
+    await expect(CC_drop_soulbound_revokable.ownerMint(account1.address, 1)).to.be.revertedWith('_numToMint > reserve');
+  });
+
+  it("Mint all reserve (owner), than mint regular", async function() {
+
+    // max supply: 10
+    // reserve: 6
+    // regular mint: 4
+
+    await ethers.provider.send("evm_increaseTime", [3650]);
+    curDate += 3650;
+
+    await expect(CC_drop_soulbound_revokable.ownerMint(account1.address, 7)).to.be.revertedWith('_numToMint > reserve');
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 2);
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 4);
+
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 5)).to.be.revertedWith('RMRKMintOverMax()');
+    
+    await CC_drop_soulbound_revokable.mint(account1.address, 4, {value: ethers.utils.parseEther('0.01').mul(4)});
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 1)).to.be.revertedWith('RMRKMintOverMax()');
+  
+  });
+
+  it("Mint some reserve (owner), than mint regular, than mint rest of reserve (owner)", async function() {
+
+    // max supply: 10
+    // reserve: 6
+    // regular mint: 4
+
+    await ethers.provider.send("evm_increaseTime", [3650]);
+    curDate += 3650;
+
+    await expect(CC_drop_soulbound_revokable.ownerMint(account1.address, 7)).to.be.revertedWith('_numToMint > reserve');
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 2);
+
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 5)).to.be.revertedWith('RMRKMintOverMax()_2');
+    
+    await CC_drop_soulbound_revokable.mint(account1.address, 4, {value: ethers.utils.parseEther('0.01').mul(4)});
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 1)).to.be.revertedWith('RMRKMintOverMax()_2');
+
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 4);
+    await expect(CC_drop_soulbound_revokable.ownerMint(account1.address, 1)).to.be.revertedWith('_numToMint > reserve');
+  
+  });
+
+  it("Mint all regular, burn one regular, than mint reserve (owner)", async function() {
+
+    // max supply: 10
+    // reserve: 6
+    // regular mint: 4
+
+    await ethers.provider.send("evm_increaseTime", [3650]);
+    curDate += 3650;
+
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 5)).to.be.revertedWith('RMRKMintOverMax()_2');
+    
+    await CC_drop_soulbound_revokable.mint(account1.address, 4, {value: ethers.utils.parseEther('0.01').mul(4)});
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 1)).to.be.revertedWith('RMRKMintOverMax()_2');
+
+    await CC_drop_soulbound_revokable.connect(owner)['burn(uint256)'](1);
+    expect(await CC_drop_soulbound_revokable.totalSupply()).to.equal(3);
+    await expect(CC_drop_soulbound_revokable.mint(account1.address, 1)).to.be.revertedWith('RMRKMintOverMax()_2');
+    
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 2);
+    await CC_drop_soulbound_revokable.ownerMint(account1.address, 4);
+
+    await expect(CC_drop_soulbound_revokable.ownerMint(account1.address, 1)).to.be.revertedWith('_numToMint > reserve');
   });
 
 });
