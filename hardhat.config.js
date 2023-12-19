@@ -10,10 +10,36 @@ const { privateKeyTestnet, polygonScanApiKey, mumbaiRPC, moonbeamScanApiKey } = 
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.17",
+  // solidity: "0.8.18",
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.21",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          outputSelection: {
+            "*": {
+              "*": [
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "devdoc",
+                "userdoc",
+                "metadata",
+                "abi"
+              ]
+            }
+          },
+          // viaIR : true,
+        },
+      },
+    ]
+  },
   networks: {
     hardhat: {
-      hardfork: "merge",
+      hardfork: "shanghai",
     },
     polygonMumbai: {
       url: mumbaiRPC, 
@@ -23,13 +49,30 @@ module.exports = {
       accounts: [privateKeyTestnet],
       explorer: "https://mumbai.polygonscan.com/",
     },
+    moonbeam: {
+      url: 'https://rpc.api.moonbeam.network', 
+      chainId: 1284,
+      gasPrice: 200000000000, // 5gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://moonbeam.moonscan.io/",
+    },
     moonbeamTestnet: {
-      url: 'https://rpc.api.moonbase.moonbeam.network', 
+      // url: 'https://rpc.api.moonbase.moonbeam.network', 
+      url: 'https://moonbeam-alpha.api.onfinality.io/public', 
       chainId: 1287,
       gasPrice: 5000000000, // 5gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://moonbase.moonscan.io/",
+    },
+    shibuya: {
+      url: 'https://evm.shibuya.astar.network/', 
+      chainId: 81,
+      gasPrice: 5000000000, // 5gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://shibuya.subscan.io/",
     },
   },
   abiExporter: {
@@ -44,7 +87,8 @@ module.exports = {
     apiKey: {
        polygonMumbai: polygonScanApiKey,
        polygon: polygonScanApiKey,
-       moonbaseAlpha: moonbeamScanApiKey
+       moonbaseAlpha: moonbeamScanApiKey,
+       moonbeam: moonbeamScanApiKey
      }
   },
 };
