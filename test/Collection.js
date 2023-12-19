@@ -19,7 +19,7 @@ describe("ApillonNFT", function() {
       "XXX", // _symbol
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // _baseExtension
-      [false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable]
+      [false, false, false, true], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
       ethers.utils.parseEther('0.01'), //  _price
       dropStartFuture, //  _dropStart
       10, //  _maxSupply
@@ -34,7 +34,7 @@ describe("ApillonNFT", function() {
       "XXX", // _symbol
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // _baseExtension
-      [true, true, true], //  _settings - [isDrop, isSoulbound, isRevokable]
+      [true, true, true, true], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
       ethers.utils.parseEther('0.01'), //  _price
       dropStartFuture, //  _dropStart
       10, //  _maxSupply

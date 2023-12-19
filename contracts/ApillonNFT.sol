@@ -43,7 +43,6 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
      */
     uint256 public reserve;
 
-
     /**
      * Is drop (if false, only owner can mint)
      */
@@ -65,9 +64,14 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     address public royaltiesAddress;
 
     /**
-     * Last minted id.
+     * Mint counter.
      */
-    uint256 public lastId;
+    uint256 public mintCounter;
+
+    /**
+     * Is ID autoincrement
+     */
+    bool public immutable isAutoIncrement;
 
 
     /**
@@ -102,6 +106,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         isDrop = _settings[0];
         isSoulbound = _settings[1];
         isRevokable = _settings[2];
+        isAutoIncrement = _settings[3];
         
         pricePerMint = _pricePerMint;
         dropStart = _dropStart;
@@ -130,11 +135,31 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         return baseURI;
     }
 
-    // public
     function mint(
         address to,
         uint256 numToMint
     ) external payable {
+        mintIds(to, numToMint, new uint256[](0));
+    }
+
+    function mintIds(
+        address to,
+        uint256 numToMint,
+        uint256[] memory idsToMint
+    ) public payable {
+        if (isAutoIncrement) {
+            require(
+                numToMint > 0 && idsToMint.length == 0, 
+                "isAutoIncrement ON: set numToMint > 0 & leave IDs empty"
+            );
+        } else {
+            require(
+                idsToMint.length > 0, 
+                "isAutoIncrement OFF: specify IDs"
+            );
+            numToMint = idsToMint.length;
+        }
+
         require(isDrop, "isDrop == false");
         require(block.timestamp >= dropStart, "Minting not started yet.");
         require(
@@ -143,12 +168,16 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         );
 
         require(
-            lastId + numToMint <= maxSupply - reserve
+            mintCounter + numToMint <= maxSupply - reserve
         );
 
         for (uint16 i = 1; i <= numToMint; i++) {
-            lastId += 1;
-            _safeMint(to, lastId);
+            mintCounter += 1;
+            if (isAutoIncrement) {
+                _safeMint(to, mintCounter);
+            } else {
+                _safeMint(to, idsToMint[i - 1]);
+            }
         }
     }
 
@@ -156,16 +185,41 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         address to,
         uint256 numToMint
     ) external onlyOwner {
+        ownerMintIds(to, numToMint, new uint256[](0));
+    }
+
+    function ownerMintIds(
+        address to,
+        uint256 numToMint,
+        uint256[] memory idsToMint
+    ) public onlyOwner {
+        if (isAutoIncrement) {
+            require(
+                numToMint > 0 && idsToMint.length == 0, 
+                "isAutoIncrement ON: set numToMint > 0 & leave IDs empty"
+            );
+        } else {
+            require(
+                idsToMint.length > 0, 
+                "isAutoIncrement OFF: specify IDs"
+            );
+            numToMint = idsToMint.length;
+        }
+
         if (isDrop) {
             require(numToMint <= reserve, "quantity > reserve"); 
             reserve -= numToMint;
         } else {
-            require(lastId + numToMint <= maxSupply);
+            require(mintCounter + numToMint <= maxSupply);
         }
         
         for (uint16 i = 1; i <= numToMint; i++) {
-            lastId += 1;
-            _safeMint(to, lastId);
+            mintCounter += 1;
+            if (isAutoIncrement) {
+                _safeMint(to, mintCounter);
+            } else {
+                _safeMint(to, idsToMint[i - 1]);
+            }
         }
     }
 
