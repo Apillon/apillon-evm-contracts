@@ -55,11 +55,6 @@ contract ApillonNFTNestable is RMRKNestableLazyMintNative {
     mapping(uint256 => uint256) private _allTokensIndex;
 
     /**
-     * Last minted id.
-     */
-    uint256 public lastId;
-
-    /**
      * @param _name - Collection name
      * @param _symbol - Collection symbol
      * @param _initBaseURI - Metadata baseURI
