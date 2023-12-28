@@ -147,6 +147,9 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         uint256 numToMint,
         uint256[] memory idsToMint
     ) public payable {
+        require(isDrop, "isDrop == false");
+        require(block.timestamp >= dropStart, "Minting not started yet.");
+
         if (isAutoIncrement) {
             require(
                 numToMint > 0 && idsToMint.length == 0, 
@@ -160,8 +163,6 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
             numToMint = idsToMint.length;
         }
 
-        require(isDrop, "isDrop == false");
-        require(block.timestamp >= dropStart, "Minting not started yet.");
         require(
             msg.value >= pricePerMint * numToMint, 
             "Insufficient amount."

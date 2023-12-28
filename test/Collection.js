@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 
 describe("ApillonNFT", function() {
-  let CC, reserve, cost, owner, account1, account2, royalties, dropStartPresent, dropStartFuture;
+  let CC_onlyOwner, CC_drop_soulbound_revokable, CC_manual, owner, account1, account2, royalties, dropStartPresent, dropStartFuture;
 
   before(async () => {
     await hre.network.provider.send("hardhat_reset");
@@ -43,6 +43,21 @@ describe("ApillonNFT", function() {
       5, // _royaltiesFees
     );
     await CC_drop_soulbound_revokable.deployed();
+
+    CC_manual = await CContract.deploy(
+      "Test", // _name
+      "XXX", // _symbol
+      "https://api.example.com/nfts/1/", // _initBaseURI
+      ".json", // _baseExtension
+      [true, false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
+      ethers.utils.parseEther('0.01'), //  _price
+      dropStartFuture, //  _dropStart
+      10, //  _maxSupply
+      6, //  _reserve
+      royalties.address, // _royaltiesAddress
+      500, // _royaltiesFees, 100 = 1%
+    );
+    await CC_manual.deployed();
 
 
   });
@@ -93,6 +108,9 @@ describe("ApillonNFT", function() {
 
     await CC_drop_soulbound_revokable.connect(account1)
       .mint(owner.address, 2, {value: ethers.utils.parseEther('0.01').mul('2')});
+
+    await expect(CC_drop_soulbound_revokable.connect(account1).mintIds(owner.address, 0, [1,2]))
+      .to.be.revertedWith('isAutoIncrement ON: set numToMint > 0 & leave IDs empty');
   });
 
   it("Check burn availabilty", async function() {
@@ -218,5 +236,32 @@ describe("ApillonNFT", function() {
 
     const idsAll = await CC_onlyOwner.allTokens();
     expect(idsAll.length).to.equal(3);
+  });
+
+  it("CC_manual regular mint", async function() {
+    await expect(CC_manual.connect(account1).mint(owner.address, 2))
+      .to.be.revertedWith('Minting not started yet.');
+
+    await expect(CC_manual.connect(account1).setDropStart(dropStartPresent))
+      .to.be.revertedWith('Ownable: caller is not the owner');
+
+    await CC_manual.setDropStart(dropStartPresent);
+
+    await expect(CC_manual.connect(account1).mint(owner.address, 2))
+      .to.be.revertedWith('isAutoIncrement OFF: specify IDs');
+
+    await expect(CC_manual.connect(account1).mintIds(owner.address, 0, [1,2]))
+      .to.be.revertedWith('Insufficient amount.');
+
+    await CC_manual.connect(account1)
+      .mintIds(owner.address, 0, [1,2], {value: ethers.utils.parseEther('0.01').mul('2')});
+
+    await expect(CC_manual.connect(owner).ownerMintIds(owner.address, 0, [1]))
+      .to.be.revertedWith('ERC721: token already minted');
+
+    await expect(CC_manual.connect(owner).ownerMintIds(owner.address, 2, []))
+      .to.be.revertedWith('isAutoIncrement OFF: specify IDs');
+
+    await CC_manual.connect(owner).ownerMintIds(owner.address, 0, [777,888]);
   });
 });
