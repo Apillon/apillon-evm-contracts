@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 import "@rmrk-team/evm-contracts/contracts/implementations/lazyMintNative/RMRKNestableLazyMintNative.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract ApillonNFTNestable is RMRKNestableLazyMintNative {
     using Strings for uint256;
