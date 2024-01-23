@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-describe("Drop", function() {
+describe("ApillonNftWhitelistClaim", function() {
   let DC, owner, account1, account2, signer;
 
   before(async () => {
@@ -8,7 +8,7 @@ describe("Drop", function() {
   });
 
   beforeEach(async () => {
-    const DContract = await ethers.getContractFactory("Drop");
+    const DContract = await ethers.getContractFactory("ApillonNftWhitelistClaim");
     [ owner, account1, account2, signer ] = await ethers.getSigners();
     DC = await DContract.deploy("Drop", "DP", "http://example.com/", signer.address);
     await DC.deployed();
@@ -64,5 +64,24 @@ describe("Drop", function() {
     expect(await DC.ownerOf(6)).to.equal(account2.address);
     expect(await DC.ownerOf(7)).to.equal(account2.address);
 
+  });
+
+  it("walletUsed returns right value", async function() {
+    expect(await DC.walletUsed(account1.address)).to.equal(false);
+
+    const amount = 5;
+
+    const message = ethers.utils.solidityKeccak256(
+      ['address', 'uint256', 'address'],
+      [account1.address, amount, DC.address]
+    );
+    const signature = await signer.signMessage(ethers.utils.arrayify(message));
+
+    await DC.connect(account1).mint(
+      amount,
+      signature
+    );
+
+    expect(await DC.walletUsed(account1.address)).to.equal(true);
   });
 });

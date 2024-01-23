@@ -4,7 +4,7 @@ require("hardhat-abi-exporter");
 require("hardhat-contract-sizer");
 require("solidity-coverage");
 
-const { privateKeyTestnet, polygonScanApiKey, mumbaiRPC, moonbeamScanApiKey } = require("./secrets.json");
+const { privateKeyTestnet, polygonScanApiKey, mumbaiRPC, moonbeamScanApiKey, sepoliaRPC, goerliRPC } = require("./secrets.json");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -73,6 +73,22 @@ module.exports = {
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://shibuya.subscan.io/",
+    },
+    sepolia: {
+      url: sepoliaRPC, 
+      chainId: 11155111,
+      gasPrice: 150000000000, // 150gwei
+      gas: 1000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://sepolia.etherscan.io/",
+    },
+    sepolia: {
+      url: goerliRPC, 
+      chainId: 5,
+      gasPrice: 20000000000, // 20gwei
+      gas: 1000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://goerli.etherscan.io/",
     },
   },
   abiExporter: {

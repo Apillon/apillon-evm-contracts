@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract Drop is ERC721Enumerable, Ownable {
+contract ApillonNftWhitelistClaim is ERC721Enumerable, Ownable {
     using Strings for uint256;
 
     string public baseURI;
