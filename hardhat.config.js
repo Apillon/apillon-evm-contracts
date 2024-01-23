@@ -4,7 +4,7 @@ require("hardhat-abi-exporter");
 require("hardhat-contract-sizer");
 require("solidity-coverage");
 
-const { privateKeyTestnet, polygonScanApiKey, mumbaiRPC, moonbeamScanApiKey, sepoliaRPC, goerliRPC } = require("./secrets.json");
+const { privateKeyTestnet, polygonScanApiKey, mumbaiRPC, moonbeamScanApiKey, sepoliaRPC, goerliRPC, etherScanApiKey } = require("./secrets.json");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -77,19 +77,19 @@ module.exports = {
     sepolia: {
       url: sepoliaRPC, 
       chainId: 11155111,
-      gasPrice: 150000000000, // 150gwei
+      gasPrice: 200000000000, // 200gwei
       gas: 1000000,
       accounts: [privateKeyTestnet],
       explorer: "https://sepolia.etherscan.io/",
     },
-    sepolia: {
-      url: goerliRPC, 
-      chainId: 5,
-      gasPrice: 20000000000, // 20gwei
-      gas: 1000000,
-      accounts: [privateKeyTestnet],
-      explorer: "https://goerli.etherscan.io/",
-    },
+    // sepolia: {
+    //   url: goerliRPC, 
+    //   chainId: 5,
+    //   gasPrice: 20000000000, // 20gwei
+    //   gas: 1000000,
+    //   accounts: [privateKeyTestnet],
+    //   explorer: "https://goerli.etherscan.io/",
+    // },
   },
   abiExporter: {
     path: "./data/abi",
@@ -104,7 +104,8 @@ module.exports = {
        polygonMumbai: polygonScanApiKey,
        polygon: polygonScanApiKey,
        moonbaseAlpha: moonbeamScanApiKey,
-       moonbeam: moonbeamScanApiKey
+       moonbeam: moonbeamScanApiKey,
+       sepolia: etherScanApiKey
      }
   },
 };
