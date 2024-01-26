@@ -13,6 +13,11 @@ contract ApillonNftWhitelistClaim is ERC721Enumerable, Ownable {
     string public baseURI;
 
     /**
+     * Metadata URI extension (.json)
+     */
+    string public baseExtension;
+
+    /**
      * @dev AC token ids.
      */
     uint256 public nextId = 1;
@@ -31,9 +36,11 @@ contract ApillonNftWhitelistClaim is ERC721Enumerable, Ownable {
         string memory _name,
         string memory _symbol,
         string memory _initBaseURI,
+        string memory _baseExtension,
         address _signer
     ) ERC721(_name, _symbol) {
-        setBaseURI(_initBaseURI);
+        baseURI = _initBaseURI;
+        baseExtension = _baseExtension;
 
         require(_signer != address(0), "Zero address not allowed");
         signer = _signer;
@@ -71,6 +78,10 @@ contract ApillonNftWhitelistClaim is ERC721Enumerable, Ownable {
         baseURI = _newBaseURI;
     }
 
+    function setBaseExtension(string memory _newBaseExtension) external onlyOwner {
+        baseExtension = _newBaseExtension;
+    }
+
     /**
      * @dev Set signer address.
      * @param _signer Signer address
@@ -96,7 +107,6 @@ contract ApillonNftWhitelistClaim is ERC721Enumerable, Ownable {
     function tokenURI(uint256 tokenId)
         public
         view
-        virtual
         override
         returns (string memory)
     {
@@ -106,10 +116,9 @@ contract ApillonNftWhitelistClaim is ERC721Enumerable, Ownable {
         );
 
         string memory currentBaseURI = _baseURI();
-        return
-            bytes(currentBaseURI).length > 0
-                ? string(abi.encodePacked(currentBaseURI, tokenId.toString()))
-                : "";
+        return bytes(currentBaseURI).length > 0
+            ? string(abi.encodePacked(currentBaseURI, tokenId.toString(), baseExtension))
+            : "";
     }
 
     /**
