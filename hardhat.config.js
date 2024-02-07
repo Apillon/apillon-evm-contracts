@@ -84,8 +84,8 @@ module.exports = {
     sepolia: {
       url: sepoliaRPC,
       chainId: 11155111,
-      gasPrice: 10000000000, // 10gwei
-      gas: 1000000,
+      gasPrice: 140000000000, // 140gwei
+      gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://sepolia.etherscan.io/",
     },
