@@ -4,14 +4,7 @@ require("hardhat-abi-exporter");
 require("hardhat-contract-sizer");
 require("solidity-coverage");
 
-const {
-  privateKeyTestnet,
-  polygonScanApiKey,
-  mumbaiRPC,
-  moonbeamScanApiKey,
-  sepoliaRPC,
-  etherScanApiKey,
-} = require("./secrets.json");
+const { privateKeyTestnet, polygonScanApiKey, mumbaiRPC, moonbeamScanApiKey } = require("./secrets.json");
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -35,21 +28,21 @@ module.exports = {
                 "devdoc",
                 "userdoc",
                 "metadata",
-                "abi",
-              ],
-            },
+                "abi"
+              ]
+            }
           },
           // viaIR : true,
         },
       },
-    ],
+    ]
   },
   networks: {
     hardhat: {
       hardfork: "shanghai",
     },
     polygonMumbai: {
-      url: mumbaiRPC,
+      url: mumbaiRPC, 
       chainId: 80001,
       gasPrice: 13000000000, // 130gwei
       gas: 2000000,
@@ -57,16 +50,16 @@ module.exports = {
       explorer: "https://mumbai.polygonscan.com/",
     },
     moonbeam: {
-      url: "https://rpc.api.moonbeam.network",
+      url: 'https://rpc.api.moonbeam.network', 
       chainId: 1284,
-      gasPrice: 200000000000, // 5gwei
+      gasPrice: 300000000000, // 300gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://moonbeam.moonscan.io/",
     },
     moonbeamTestnet: {
-      // url: 'https://rpc.api.moonbase.moonbeam.network',
-      url: "https://moonbeam-alpha.api.onfinality.io/public",
+      // url: 'https://rpc.api.moonbase.moonbeam.network', 
+      url: 'https://moonbeam-alpha.api.onfinality.io/public', 
       chainId: 1287,
       gasPrice: 5000000000, // 5gwei
       gas: 2000000,
@@ -74,35 +67,28 @@ module.exports = {
       explorer: "https://moonbase.moonscan.io/",
     },
     shibuya: {
-      url: "https://evm.shibuya.astar.network/",
+      url: 'https://evm.shibuya.astar.network/', 
       chainId: 81,
       gasPrice: 5000000000, // 5gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://shibuya.subscan.io/",
     },
-    sepolia: {
-      url: sepoliaRPC,
-      chainId: 11155111,
-      gasPrice: 10000000000, // 10gwei
-      gas: 1000000,
-      accounts: [privateKeyTestnet],
-      explorer: "https://sepolia.etherscan.io/",
-    },
   },
   abiExporter: {
     path: "./data/abi",
     clear: true,
     flat: true,
-    only: ["ApillonNFT"],
+    only: [
+      'ApillonNFT',
+    ],
   },
   etherscan: {
     apiKey: {
-      polygonMumbai: polygonScanApiKey,
-      polygon: polygonScanApiKey,
-      moonbaseAlpha: moonbeamScanApiKey,
-      moonbeam: moonbeamScanApiKey,
-      sepolia: etherScanApiKey,
-    },
+       polygonMumbai: polygonScanApiKey,
+       polygon: polygonScanApiKey,
+       moonbaseAlpha: moonbeamScanApiKey,
+       moonbeam: moonbeamScanApiKey
+     }
   },
 };

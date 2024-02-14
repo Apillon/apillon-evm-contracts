@@ -8,10 +8,10 @@ contract ApillonNFTNestable is RMRKNestableLazyMintNative {
     using Strings for uint256;
 
     /**
-     * Metadata URI    
+     * Metadata URI
      */
     string private _tokenUri;
-    
+
     /**
      * Metadata URI extension (.json)
      */
