@@ -74,6 +74,14 @@ module.exports = {
       accounts: [privateKeyTestnet],
       explorer: "https://shibuya.subscan.io/",
     },
+    sepolia: {
+      url: sepoliaRPC,
+      chainId: 11155111,
+      gasPrice: 140000000000, // 140gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://sepolia.etherscan.io/",
+    },
   },
   abiExporter: {
     path: "./data/abi",
