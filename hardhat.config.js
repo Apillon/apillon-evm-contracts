@@ -52,7 +52,7 @@ module.exports = {
     moonbeam: {
       url: 'https://rpc.api.moonbeam.network', 
       chainId: 1284,
-      gasPrice: 200000000000, // 5gwei
+      gasPrice: 300000000000, // 300gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://moonbeam.moonscan.io/",
@@ -73,6 +73,14 @@ module.exports = {
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://shibuya.subscan.io/",
+    },
+    sepolia: {
+      url: sepoliaRPC,
+      chainId: 11155111,
+      gasPrice: 140000000000, // 140gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://sepolia.etherscan.io/",
     },
   },
   abiExporter: {
