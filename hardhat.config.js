@@ -60,7 +60,7 @@ module.exports = {
     moonbeam: {
       url: "https://rpc.api.moonbeam.network",
       chainId: 1284,
-      gasPrice: 200000000000, // 5gwei
+      gasPrice: 300000000000, // 300gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://moonbeam.moonscan.io/",

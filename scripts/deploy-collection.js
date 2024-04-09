@@ -7,7 +7,7 @@ async function main() {
     "MockSymbol",
     "https://api.example.com/nfts/",
     "",
-    [false, false, false],
+    [false, false, false, true],
     hre.ethers.utils.parseUnits('0.001', 18).toString(), // _price
     0, // _dropStart
     1000, // _maxSupply
