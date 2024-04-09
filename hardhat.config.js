@@ -11,6 +11,7 @@ const {
   moonbeamScanApiKey,
   sepoliaRPC,
   etherScanApiKey,
+  privateKeyMainnet,
 } = require("./secrets.json");
 
 /**
@@ -89,6 +90,14 @@ module.exports = {
       accounts: [privateKeyTestnet],
       explorer: "https://sepolia.etherscan.io/",
     },
+    mainnet: {
+      url: "https://ethereum.publicnode.com",
+      chainId: 1,
+      gasPrice: 42000000000, // 48gwei
+      gas: 2400000,
+      accounts: [privateKeyMainnet],
+      explorer: "https://etherscan.com/",
+    },
   },
   abiExporter: {
     path: "./data/abi",
@@ -103,6 +112,7 @@ module.exports = {
       moonbaseAlpha: moonbeamScanApiKey,
       moonbeam: moonbeamScanApiKey,
       sepolia: etherScanApiKey,
+      mainnet: etherScanApiKey,
     },
   },
 };
