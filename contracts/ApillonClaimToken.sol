@@ -8,12 +8,24 @@ pragma solidity 0.8.21;
 
 contract ApillonClaimToken is Ownable {
 
+  /**
+   * @dev Token to be claimed   
+   */
   IERC20 public immutable TOKEN;
 
+  /**
+   * @dev Mapping of addresses that already claimed
+   */
   mapping(address => bool) public walletClaimed;
 
+  /**
+   * @dev Mapping of invalidated dataHashes
+   */
   mapping(bytes32 => bool) public dataHashInvalidated;
 
+  /**
+   * @dev address signing on backend
+   */
   address public signer;
 
   event Claim(address indexed wallet, uint256 amount, bytes32 indexed dataHash);
@@ -32,6 +44,7 @@ contract ApillonClaimToken is Ownable {
     signer = _signer;
   }
 
+  // public
   function claim(
     uint256 amount,
     uint256 timestamp,
@@ -61,6 +74,7 @@ contract ApillonClaimToken is Ownable {
     emit Claim(msg.sender, amount, dataHash);
   }
 
+  // public -- onlyOwner
   function withdrawToken(address wallet, uint256 amount) external onlyOwner {
     require(
       TOKEN.transfer(wallet, amount), 
@@ -70,13 +84,14 @@ contract ApillonClaimToken is Ownable {
     emit WithdrawToken(wallet, amount);
   }
 
+  // public -- onlyOwner
   function invalidateDataHash(bytes32 dataHash) external onlyOwner {
     dataHashInvalidated[dataHash] = true;
 
     emit DataHashInvalidated(dataHash);
   }
 
-  /*
+  /** 
     * @dev Set signer address.
     * @param _signer Signer address
     */
@@ -87,6 +102,7 @@ contract ApillonClaimToken is Ownable {
       emit SetSigner(_signer);
   }
 
+  // public -- view
   function validateSignature(
       address sender,
       uint256 amount,
