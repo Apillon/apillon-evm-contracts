@@ -13,7 +13,7 @@ contract ApillonVesting is Ownable {
     uint8 nonVestedPercent;
     uint256 amount;
     uint256 debt;
-    uint256 lastClaimTimestamp;
+    uint256 lastClaimTimestamp; // Not sure if we even need this !!!
   }
 
   uint256 public constant MONTH = 2592000; // 60 * 60 * 24 * 30
