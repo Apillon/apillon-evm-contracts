@@ -1,16 +1,20 @@
 const { expect } = require("chai");
 
 describe("ApillonVesting", function () {
-  let ACT, TOKEN, owner, account1, account2, signer;
+  let ACT, TOKEN, owner, account1, account2, account3, account4, signer;
 
   const CHAIN_ID = 31337; // hardhat test network id
+  const MONTH_1 = 86400 * 30;
+  const HOUR_1 = 3600;
+
+  let currentTime = Math.ceil(new Date().getTime() / 1000);
 
   before(async () => {
     await hre.network.provider.send("hardhat_reset");
   });
 
   beforeEach(async () => {
-    [owner, account1, account2, signer] = await ethers.getSigners();
+    [owner, account1, account2, account3, account4, signer] = await ethers.getSigners();
 
     const TokenContract = await ethers.getContractFactory(
       "DummyToken"
@@ -25,9 +29,12 @@ describe("ApillonVesting", function () {
     const ACTContract = await ethers.getContractFactory(
       "ApillonVesting"
     );
+
+    const vestingStart = currentTime + HOUR_1;
+
     ACT = await ACTContract.deploy(
       TOKEN.address,
-      signer.address
+      vestingStart
     );
     await ACT.deployed();
 
@@ -44,20 +51,22 @@ describe("ApillonVesting", function () {
 
     const vestingDataList = [
       {
+        vestingType: 0, // PRESEED
         user: account1.address,
         months: 12,
         nonVestedPercent: 30,
         amount: ethers.utils.parseEther('100'),
-        debt: 0,
-        lastClaimTimestamp: 0,
+        totalDebt: 0,
+        vestedDebt: 0,
       },
       {
+        vestingType: 0, // PRESEED
         user: account2.address,
         months: 24,
         nonVestedPercent: 0,
         amount: ethers.utils.parseEther('150'),
-        debt: 0,
-        lastClaimTimestamp: 0,
+        totalDebt: 0,
+        vestedDebt: 0,
       }
     ]
 
@@ -68,84 +77,229 @@ describe("ApillonVesting", function () {
     expect(vestData.months).to.equal(vestingDataList[0].months);
     expect(vestData.nonVestedPercent).to.equal(vestingDataList[0].nonVestedPercent);
     expect(vestData.amount).to.equal(vestingDataList[0].amount);
-    expect(vestData.lastClaimTimestamp).to.equal(vestingDataList[0].lastClaimTimestamp);
+    expect(vestData.vestedDebt).to.equal(vestingDataList[0].vestedDebt);
+    expect(vestData.totalDebt).to.equal(vestingDataList[0].totalDebt);
 
     vestData = await ACT.vestingData(account2.address);
     expect(vestData.user).to.equal(vestingDataList[1].user);
     expect(vestData.months).to.equal(vestingDataList[1].months);
     expect(vestData.nonVestedPercent).to.equal(vestingDataList[1].nonVestedPercent);
     expect(vestData.amount).to.equal(vestingDataList[1].amount);
-    expect(vestData.lastClaimTimestamp).to.equal(vestingDataList[1].lastClaimTimestamp);
+    expect(vestData.vestedDebt).to.equal(vestingDataList[1].vestedDebt);
+    expect(vestData.totalDebt).to.equal(vestingDataList[1].totalDebt);
   });
 
-  // it("Successfully claim", async function () {
+  it("Successfully claim", async function () {
 
-  //   const amount = hre.ethers.utils.parseEther('3');
-  //   const timestamp = Math.ceil(new Date().getTime() / 1000) + 3600;
+    // Setup vesting data
+    const vestingDataList = [
+      {
+        vestingType: 0, // PRESEED
+        user: account1.address,
+        months: 12,
+        nonVestedPercent: 30,
+        amount: ethers.utils.parseEther('100'),
+        totalDebt: 0,
+        vestedDebt: 0,
+      },
+      {
+        vestingType: 0, // PRESEED
+        user: account2.address,
+        months: 24,
+        nonVestedPercent: 0,
+        amount: ethers.utils.parseEther('150'),
+        totalDebt: 0,
+        vestedDebt: 0,
+      }
+    ];
 
-  //   const message = ethers.utils.solidityKeccak256(
-  //     ["address", "address", "uint256", "uint256", "uint256"],
-  //     [ACT.address, account1.address, amount, timestamp, CHAIN_ID]
-  //   );
-  //   const signature = await signer.signMessage(ethers.utils.arrayify(message));
+    const account1VestedTotal = ethers.BigNumber.from(100 - vestingDataList[0].nonVestedPercent).mul(vestingDataList[0].amount).div(100);
+    const account1VestedPerSecond = account1VestedTotal.div(9 * MONTH_1); // 9 months for distibution
 
-  //   await ACT.connect(account1).claim(amount, timestamp, signature);
+    await ACT.setVestingData(vestingDataList);
 
-  //   expect(await TOKEN.balanceOf(account1.address)).to.equal(amount);
+    expect(await TOKEN.balanceOf(account1.address)).to.equal(0);
 
-  //   await expect(
-  //     ACT.connect(account1).claim(amount, timestamp, signature)
-  //   ).to.be.revertedWith("wallet already claimed");
-  // });
+    await expect(
+      ACT.connect(account1).claim()
+    ).to.be.revertedWith("Claim not open yet");
 
-  // it("Fail claim if dataHash invalidated", async function () {
+    await ethers.provider.send("evm_increaseTime", [HOUR_1]);
+    currentTime += HOUR_1;
 
-  //   const amount = hre.ethers.utils.parseEther('3');
-  //   const timestamp = Math.ceil(new Date().getTime() / 1000) + 3600;
+    // Claim non-vested amount
+    await ACT.connect(account1).claim();
+    expect(await TOKEN.balanceOf(account1.address)).to.equal(ethers.utils.parseEther('30'));
 
-  //   const message = ethers.utils.solidityKeccak256(
-  //     ["address", "address", "uint256", "uint256", "uint256"],
-  //     [ACT.address, account1.address, amount, timestamp, CHAIN_ID]
-  //   );
-  //   const dataHash = ethers.utils.arrayify(message);
-  //   const signature = await signer.signMessage(dataHash);
+    // // Try to claim additional tokens
+    await ACT.connect(account1).claim();
+    expect(await TOKEN.balanceOf(account1.address)).to.equal(ethers.utils.parseEther('30'));
 
-  //   await ACT.invalidateDataHash(dataHash);
+    // Increase time by 3 months
+    await ethers.provider.send("evm_increaseTime", [MONTH_1 * 3 - 10]); // 10sec out of sync
+    currentTime += MONTH_1 * 3 - 10;
 
-  //   await expect(
-  //     ACT.connect(account1).claim(amount, timestamp, signature)
-  //   ).to.be.revertedWith("dataHash invalidated");
-  // });
+    await ACT.connect(account1).claim();
 
-  // it("Fail dataHash invalidate if caller not owner", async function () {
-  //   const dataHash = ethers.utils.hexlify(ethers.utils.zeroPad("0x", 32));
+    let bal;
+    bal = await TOKEN.balanceOf(account1.address);
+    expect(bal.gt(ethers.utils.parseEther('30'))).to.equal(true);
+    expect(bal.lte(ethers.utils.parseEther('30').add(account1VestedPerSecond.mul(5)))).to.equal(true);
 
-  //   await expect(
-  //     ACT.connect(account1).invalidateDataHash(dataHash)
-  //   ).to.be.revertedWith("Ownable: caller is not the owner");
-  // });
+    // Increase time by 4.5 months
+    await ethers.provider.send("evm_increaseTime", [Math.ceil(MONTH_1 * 4.5)]);
+    currentTime += Math.ceil(MONTH_1 * 4.5);
 
-  // it("Withdraw token successfully", async function () {
-  //   const amountToWithdraw = hre.ethers.utils.parseEther('150');
-  //   await ACT.withdrawToken(account2.address, amountToWithdraw);
+    await ACT.connect(account1).claim();
 
-  //   expect(await TOKEN.balanceOf(account2.address)).to.equal(amountToWithdraw);
-  // });
+    bal = await TOKEN.balanceOf(account1.address);
+    expect(bal.gt(ethers.utils.parseEther('65'))).to.equal(true);
+    expect(bal.lte(ethers.utils.parseEther('65').add(account1VestedPerSecond.mul(5)))).to.equal(true);
 
-  // it("Fail Withdraw token if caller not owner", async function () {
-  //   await expect(
-  //     ACT.connect(account1).withdrawToken(owner.address, hre.ethers.utils.parseEther('150'))
-  //   ).to.be.revertedWith("Ownable: caller is not the owner");
-  // });
+    // Increase time by 5 months, should be able to claim the remaining
+    await ethers.provider.send("evm_increaseTime", [MONTH_1 * 5]);
+    currentTime += MONTH_1 * 5;
 
-  // it("Change signer", async function() {
-  //   expect(await ACT['signer()']()).to.equal(signer.address);
+    await ACT.connect(account1).claim();
 
-  //   await expect(ACT.connect(account1).setSigner(account2.address)
-  //   ).to.be.revertedWith(`Ownable: caller is not the owner`);
+    bal = await TOKEN.balanceOf(account1.address);
+    expect(bal).to.equal(ethers.utils.parseEther('100'));
 
-  //   await ACT.setSigner(account2.address);
-  //   expect(await ACT['signer()']()).to.equal(account2.address);
-  // });
+    // Increase time by 12 months, should be able to claim the remaining
+    await ethers.provider.send("evm_increaseTime", [MONTH_1 * 12]);
+    currentTime += MONTH_1 * 12;
+
+    // Account 2 claim all at once
+    await ACT.connect(account2).claim();
+    expect(await TOKEN.balanceOf(account2.address)).to.equal(ethers.utils.parseEther('150'));
+  });
+
+  it("Transfer vesting data to other user and claim", async function () {
+
+    // Setup vesting data
+    const vestingDataList = [
+      {
+        vestingType: 0, // PRESEED
+        user: account1.address,
+        months: 12,
+        nonVestedPercent: 30,
+        amount: ethers.utils.parseEther('100'),
+        totalDebt: 0,
+        vestedDebt: 0,
+      },
+      {
+        vestingType: 0, // PRESEED
+        user: account2.address,
+        months: 24,
+        nonVestedPercent: 10,
+        amount: ethers.utils.parseEther('150'),
+        totalDebt: 0,
+        vestedDebt: 0,
+      }
+    ];
+
+    await ACT.setVestingData(vestingDataList);
+
+    expect(await TOKEN.balanceOf(account1.address)).to.equal(0);
+
+    await expect(
+      ACT.connect(account1).claim()
+    ).to.be.revertedWith("Claim not open yet");
+
+    await ethers.provider.send("evm_increaseTime", [HOUR_1]);
+    currentTime += HOUR_1;
+
+    await expect(
+      ACT.connect(account1).transferVesting(account3.address, account4.address)
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+
+    await expect(
+      ACT.transferVesting(account3.address, account4.address)
+    ).to.be.revertedWith("invalid fromUser record");
+
+    await expect(
+      ACT.transferVesting(account1.address, account2.address)
+    ).to.be.revertedWith("toUser data already set");
+
+    // Claim non-vested amount
+    await ACT.connect(account1).claim();
+    expect(await TOKEN.balanceOf(account1.address)).to.equal(ethers.utils.parseEther('30'));
+
+    await expect(
+      ACT.transferVesting(account1.address, account4.address)
+    ).to.be.revertedWith("fromUser already claimed");
+
+    await expect(
+      ACT.connect(account3).claim()
+    ).to.be.revertedWith("Nothing to claim");
+
+    // Successfully transfer from account2 to account3
+    await ACT.transferVesting(account2.address, account3.address);
+
+    await expect(
+      ACT.connect(account2).claim()
+    ).to.be.revertedWith("Nothing to claim");
+
+    await ACT.connect(account3).claim();
+    expect(await TOKEN.balanceOf(account3.address)).to.equal(ethers.utils.parseEther('15'));
+  });
+
+  it("Remove vesting data from user", async function () {
+
+    // Setup vesting data
+    const vestingDataList = [
+      {
+        vestingType: 0, // PRESEED
+        user: account1.address,
+        months: 12,
+        nonVestedPercent: 30,
+        amount: ethers.utils.parseEther('100'),
+        totalDebt: 0,
+        vestedDebt: 0,
+      },
+      {
+        vestingType: 0, // PRESEED
+        user: account2.address,
+        months: 24,
+        nonVestedPercent: 10,
+        amount: ethers.utils.parseEther('150'),
+        totalDebt: 0,
+        vestedDebt: 0,
+      }
+    ];
+
+    await ACT.setVestingData(vestingDataList);
+
+    await ethers.provider.send("evm_increaseTime", [HOUR_1]);
+    currentTime += HOUR_1;
+
+    // Claim non-vested amount
+    await ACT.connect(account1).claim();
+    expect(await TOKEN.balanceOf(account1.address)).to.equal(ethers.utils.parseEther('30'));
+
+    await expect(
+      ACT.connect(account1).removeVesting([account1.address, account3.address])
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+
+    await expect(
+      ACT.removeVesting([account1.address, account3.address])
+    ).to.be.revertedWith("User already started claiming");
+
+    // Successfully transfer from account2 to account3
+    await ACT.removeVesting([account2.address]);
+
+    await expect(
+      ACT.connect(account2).claim()
+    ).to.be.revertedWith("Nothing to claim");
+  });
+
+  it("Withdraw token", async function () {
+    await expect(
+      ACT.connect(account3).withdrawToken(account3.address, hre.ethers.utils.parseEther('55'))
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+
+    await ACT.withdrawToken(account3.address, hre.ethers.utils.parseEther('55'));
+    expect(await TOKEN.balanceOf(account3.address)).to.equal(ethers.utils.parseEther('55'));
+  });
 
 });
