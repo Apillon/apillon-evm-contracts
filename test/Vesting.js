@@ -54,6 +54,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account1.address,
         months: 12,
+        cliff: 3,
         nonVestedPercent: 30,
         amount: ethers.utils.parseEther('100'),
         totalDebt: 0,
@@ -63,6 +64,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account2.address,
         months: 24,
+        cliff: 6,
         nonVestedPercent: 0,
         amount: ethers.utils.parseEther('150'),
         totalDebt: 0,
@@ -97,6 +99,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account1.address,
         months: 12,
+        cliff: 3,
         nonVestedPercent: 30,
         amount: ethers.utils.parseEther('100'),
         totalDebt: 0,
@@ -106,6 +109,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account2.address,
         months: 24,
+        cliff: 6,
         nonVestedPercent: 0,
         amount: ethers.utils.parseEther('150'),
         totalDebt: 0,
@@ -182,6 +186,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account1.address,
         months: 12,
+        cliff: 3,
         nonVestedPercent: 30,
         amount: ethers.utils.parseEther('100'),
         totalDebt: 0,
@@ -191,6 +196,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account2.address,
         months: 24,
+        cliff: 6,
         nonVestedPercent: 10,
         amount: ethers.utils.parseEther('150'),
         totalDebt: 0,
@@ -252,6 +258,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account1.address,
         months: 12,
+        cliff: 3,
         nonVestedPercent: 30,
         amount: ethers.utils.parseEther('100'),
         totalDebt: 0,
@@ -261,6 +268,7 @@ describe("ApillonVesting", function () {
         vestingType: 0, // PRESEED
         user: account2.address,
         months: 24,
+        cliff: 6,
         nonVestedPercent: 10,
         amount: ethers.utils.parseEther('150'),
         totalDebt: 0,

@@ -19,6 +19,7 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
     VestingType vestingType;
     address user;
     uint8 months;
+    uint8 cliff;
     uint8 nonVestedPercent;
     uint256 amount;
     uint256 totalDebt;
@@ -123,8 +124,7 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
 
     endTime = startTime + MONTH * vData.months;
 
-    vestedStartDistribution = 
-      startTime + MONTH * (vData.months == 12 ? 3 : 6); // 12 month = 3 month cliff, 24 month = 6 month cliff
+    vestedStartDistribution = startTime + MONTH * vData.cliff;
 
     amountPerSecond = vestedTotal / (endTime - vestedStartDistribution);
 
@@ -162,6 +162,10 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
       require(
         vData.months == 12 || vData.months == 24,
         "months must be set to either 12 or 24"
+      );
+      require(
+        vData.cliff == 3 || vData.cliff == 6 || vData.cliff == 12,
+        "cliff has to be 3, 6 or 12"
       );
       require(
         vData.nonVestedPercent <= 50,
