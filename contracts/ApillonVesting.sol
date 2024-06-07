@@ -11,7 +11,7 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
   enum VestingType {
     PRESEED,
     SEED,
-    COMUNITY,
+    COMMUNITY,
     TEAM
   }
 
@@ -160,8 +160,8 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
         "totalDebt & vestedDebt must be set to 0"
       );
       require(
-        vData.months == 12 || vData.months == 24,
-        "months must be set to either 12 or 24"
+        vData.months == 12 || vData.months == 24 || vData.months == 48,
+        "months must be set to either 12, 24 or 48"
       );
       require(
         vData.cliff == 3 || vData.cliff == 6 || vData.cliff == 12,

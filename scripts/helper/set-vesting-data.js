@@ -3,15 +3,18 @@ const fs = require("fs");
 
 async function main() {
   const deployer = (await hre.ethers.getSigners())[0];
-  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0xd7Ef05AB3Eb5d408A513056E80Fd730aCF54AEc7', deployer);
 
-  const data = fs.readFileSync('./scripts/helper/vesting-data-sample.csv').toString();
+  // SET PRODUCTION DATA !!!
+  const data = fs.readFileSync('./scripts/helper/vesting-data-dev.csv').toString();
+  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0xe5b4C2fcC4389a52cb64F5a6929913b3Bf6926Aa', deployer);
+  const BULK_SIZE = 50;
+  // SET PRODUCTION DATA !!! [END]
 
   const lines = data.split('\r\n');
 
   const vestingDataList = [];
 
-  const vestingTypeAr = ["PRESEED", "SEED", "COMUNITY", "TEAM"];
+  const vestingTypeAr = ["PRESEED", "SEED", "COMMUNITY", "TEAM"];
 
   const uniqueAddress = [];
 
@@ -39,7 +42,7 @@ async function main() {
     uniqueAddress.push(columns[1].toLowerCase());
 
     // Check months
-    if (!["12","24"].includes(columns[2])) {
+    if (!["12","24","48"].includes(columns[2])) {
       console.log("Invalid month value: " + columns[2]);
       process.exit(1);
     }
@@ -73,8 +76,6 @@ async function main() {
       vestedDebt: 0,
     });
   }
-
-  const BULK_SIZE = 3;
 
   for(let i=0; i<Math.ceil(vestingDataList.length / BULK_SIZE); i++) {
     const start = BULK_SIZE * i;
