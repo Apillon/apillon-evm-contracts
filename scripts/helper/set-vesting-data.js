@@ -6,7 +6,7 @@ async function main() {
 
   // SET PRODUCTION DATA !!!
   const data = fs.readFileSync('./scripts/helper/vesting-data-dev.csv').toString();
-  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0xe5b4C2fcC4389a52cb64F5a6929913b3Bf6926Aa', deployer);
+  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0xca6F98Fd3a2d1209b67E55302f1bDd8325DB673B', deployer);
   const BULK_SIZE = 50;
   // SET PRODUCTION DATA !!! [END]
 
