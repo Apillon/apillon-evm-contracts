@@ -6,7 +6,7 @@ async function main() {
 
   // SET PRODUCTION DATA !!!
   const data = fs.readFileSync('./scripts/helper/vesting-data-dev.csv').toString();
-  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0xca6F98Fd3a2d1209b67E55302f1bDd8325DB673B', deployer);
+  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0x4Ce4B46649739B68fc2C64356c2AfE5921592ca8', deployer);
   const BULK_SIZE = 50;
   // SET PRODUCTION DATA !!! [END]
 
@@ -83,7 +83,7 @@ async function main() {
 
     console.log("Submit batch " + (i+1) + ": (" + dataAr.length + " records)");
 
-    const tx = await vesting.setVestingData(dataAr);
+    const tx = await vesting.setVestingData(dataAr, {gasLimit: 2000000});
     await tx.wait();
   }
 }

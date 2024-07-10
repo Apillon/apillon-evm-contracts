@@ -48,8 +48,8 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
     TOKEN = IERC20(_token);
 
     require(
-      _startTime > block.timestamp - 3600, 
-      "Start time cannot be more than 1h in past"
+      _startTime > block.timestamp - 86400, 
+      "Start time cannot be more than 1day in past"
     );
     startTime = _startTime;
   }
