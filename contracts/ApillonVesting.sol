@@ -26,7 +26,8 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
     uint256 vestedDebt;
   }
 
-  uint256 public constant MONTH = 2592000; // 60 * 60 * 24 * 30
+  // uint256 public constant MONTH = 2592000; // 60 * 60 * 24 * 30
+  uint256 public constant MONTH = 3600;
 
   /**
    * @dev Token to be claimed   

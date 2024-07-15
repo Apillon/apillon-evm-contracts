@@ -6,7 +6,7 @@ async function main() {
 
   // SET PRODUCTION DATA !!!
   const data = fs.readFileSync('./scripts/helper/vesting-data-dev.csv').toString();
-  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0x4Ce4B46649739B68fc2C64356c2AfE5921592ca8', deployer);
+  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0x64c7d1C71DbaB3773003a860ec79250587932508', deployer);
   const BULK_SIZE = 50;
   // SET PRODUCTION DATA !!! [END]
 
@@ -17,6 +17,8 @@ async function main() {
   const vestingTypeAr = ["PRESEED", "SEED", "COMMUNITY", "TEAM"];
 
   const uniqueAddress = [];
+
+  let totalAmount = ethers.BigNumber.from(0);
 
   for (let i = 1; i < lines.length; i++) {
     const columns = lines[i].split(';');
@@ -65,6 +67,8 @@ async function main() {
       process.exit(1);
     }
 
+    totalAmount = totalAmount.add(ethers.utils.parseEther(columns[5]));
+
     vestingDataList.push({
       vestingType,
       user: columns[1],
@@ -76,6 +80,10 @@ async function main() {
       vestedDebt: 0,
     });
   }
+
+  console.log('---------------------------------');
+  console.log(`Total Amount: ${ethers.utils.formatEther(totalAmount)}`);
+  console.log('---------------------------------');
 
   for(let i=0; i<Math.ceil(vestingDataList.length / BULK_SIZE); i++) {
     const start = BULK_SIZE * i;

@@ -4,7 +4,7 @@ async function main() {
   const ContractF = await hre.ethers.getContractFactory("ApillonVesting");
   const contr = await ContractF.deploy(
     "0xfFfFFfff46643f5a151c70C6a972559497530C45", // token
-    1720594800 // startTime
+    1721113200 // startTime
   );
 
   await contr.deployed();
