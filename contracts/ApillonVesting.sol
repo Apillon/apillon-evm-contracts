@@ -26,8 +26,7 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
     uint256 vestedDebt;
   }
 
-  // uint256 public constant MONTH = 2592000; // 60 * 60 * 24 * 30
-  uint256 public constant MONTH = 3600;
+  uint256 public constant MONTH = 30 days; // 60 * 60 * 24 * 30
 
   /**
    * @dev Token to be claimed   
@@ -135,16 +134,21 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
       claimableNonVestedAmt = nonVestedTotal;
     }
 
-    if (endTime > block.timestamp) {
-      endTime = block.timestamp;
+    uint256 currentTimestamp = block.timestamp;
+    if (endTime > currentTimestamp) {
+      endTime = currentTimestamp;
     }
 
     if (vestedStartDistribution < endTime) {
-      claimableVestedAmt = (block.timestamp - vestedStartDistribution) * amountPerSecond - vData.vestedDebt;
+      claimableVestedAmt = (currentTimestamp - vestedStartDistribution) * amountPerSecond - vData.vestedDebt;
     }
 
-    if (vData.totalDebt + claimableNonVestedAmt + claimableVestedAmt > vData.amount) {
-      claimableVestedAmt = vData.amount - vData.totalDebt - claimableNonVestedAmt;
+    // Cap the claimable amounts to ensure no over-claiming occurs.
+    // Simplify the check to ensure total claimable does not exceed the maximum allowed amount.
+    uint256 totalClaimable = vData.totalDebt + claimableNonVestedAmt + claimableVestedAmt;
+    if (totalClaimable > vData.amount) {
+      // The conditional check here is clearer and prevents setting 'claimableVestedAmt' to a negative number (underflow).
+      claimableVestedAmt = vData.amount > (vData.totalDebt + claimableNonVestedAmt) ? vData.amount - (vData.totalDebt + claimableNonVestedAmt) : 0;
     }
   }
 
