@@ -47,10 +47,6 @@ contract ApillonVesting is Ownable, ReentrancyGuard {
     require(_token != address(0), "Zero address not allowed");
     TOKEN = IERC20(_token);
 
-    require(
-      _startTime > block.timestamp - 86400, 
-      "Start time cannot be more than 1day in past"
-    );
     startTime = _startTime;
   }
 
