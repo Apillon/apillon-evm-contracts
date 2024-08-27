@@ -5,12 +5,16 @@ async function main() {
   const deployer = (await hre.ethers.getSigners())[0];
 
   // SET PRODUCTION DATA !!!
-  const data = fs.readFileSync('./scripts/helper/vesting-data-dev.csv').toString();
-  const vesting = await hre.ethers.getContractAt('ApillonVesting', '0x64c7d1C71DbaB3773003a860ec79250587932508', deployer);
+  const data = fs.readFileSync("./scripts/helper/vd-1.csv").toString();
+  const vesting = await hre.ethers.getContractAt(
+    "ApillonVesting",
+    "0x4B8975DA82313Ca26f878EB6Bdd65D3231aF6DD9",
+    deployer
+  );
   const BULK_SIZE = 50;
   // SET PRODUCTION DATA !!! [END]
 
-  const lines = data.split('\r\n');
+  const lines = data.split("\r\n");
 
   const vestingDataList = [];
 
@@ -21,7 +25,7 @@ async function main() {
   let totalAmount = ethers.BigNumber.from(0);
 
   for (let i = 1; i < lines.length; i++) {
-    const columns = lines[i].split(';');
+    const columns = lines[i].split(";");
 
     // check vesting type
     const vestingType = vestingTypeAr.indexOf(columns[0]);
@@ -31,7 +35,7 @@ async function main() {
     }
 
     // check address
-    if(!ethers.utils.isAddress(columns[1])) {
+    if (!ethers.utils.isAddress(columns[1])) {
       console.log("Invalid address: " + columns[1]);
       process.exit(1);
     }
@@ -44,13 +48,13 @@ async function main() {
     uniqueAddress.push(columns[1].toLowerCase());
 
     // Check months
-    if (!["12","24","48"].includes(columns[2])) {
+    if (!["12", "24", "48"].includes(columns[2])) {
       console.log("Invalid month value: " + columns[2]);
       process.exit(1);
     }
 
     // Check cliff
-    if (!["3","6","12"].includes(columns[3])) {
+    if (!["3", "6", "12"].includes(columns[3])) {
       console.log("Invalid cliff value: " + columns[3]);
       process.exit(1);
     }
@@ -81,17 +85,19 @@ async function main() {
     });
   }
 
-  console.log('---------------------------------');
+  console.log("---------------------------------");
   console.log(`Total Amount: ${ethers.utils.formatEther(totalAmount)}`);
-  console.log('---------------------------------');
+  console.log("---------------------------------");
 
-  for(let i=0; i<Math.ceil(vestingDataList.length / BULK_SIZE); i++) {
+  for (let i = 0; i < Math.ceil(vestingDataList.length / BULK_SIZE); i++) {
     const start = BULK_SIZE * i;
     const dataAr = vestingDataList.slice(start, start + BULK_SIZE);
 
-    console.log("Submit batch " + (i+1) + ": (" + dataAr.length + " records)");
+    console.log(
+      "Submit batch " + (i + 1) + ": (" + dataAr.length + " records)"
+    );
 
-    const tx = await vesting.setVestingData(dataAr, {gasLimit: 2000000});
+    const tx = await vesting.setVestingData(dataAr, { gasLimit: 5000000 });
     await tx.wait();
   }
 }

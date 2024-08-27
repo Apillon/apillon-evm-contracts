@@ -60,16 +60,16 @@ module.exports = {
     moonbeam: {
       url: "https://rpc.api.moonbeam.network",
       chainId: 1284,
-      gasPrice: 300000000000, // 300gwei
+      gasPrice: 150000000000, // 150gwei
       gas: 2000000,
-      accounts: [privateKeyTestnet],
+      accounts: [privateKeyMainnet],
       explorer: "https://moonbeam.moonscan.io/",
     },
     moonbeamTestnet: {
       // url: 'https://rpc.api.moonbase.moonbeam.network',
       url: "https://moonbeam-alpha.api.onfinality.io/public",
       chainId: 1287,
-      gasPrice: 5000000000, // 5gwei
+      gasPrice: 200000000000, // 5gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
       explorer: "https://moonbase.moonscan.io/",
