@@ -1,23 +1,29 @@
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
 describe("ApillonNFT", function () {
   let CC_onlyOwner,
     CC_drop_soulbound_revokable,
     CC_manual,
     CC_manual_drop,
-    owner,
+    controller,
+    admin,
     account1,
     account2,
     royalties,
     dropStartPresent,
     dropStartFuture;
+  let controllerRole = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("CONTROLLER_ROLE")
+  );
 
   before(async () => {
     await hre.network.provider.send("hardhat_reset");
   });
 
   beforeEach(async () => {
-    [owner, account1, account2, royalties] = await ethers.getSigners();
+    [controller, account1, account2, royalties, admin] =
+      await ethers.getSigners();
     const CContract = await ethers.getContractFactory("ApillonNFT");
 
     dropStartPresent = Math.ceil(new Date().getTime() / 1000); // present
@@ -29,12 +35,9 @@ describe("ApillonNFT", function () {
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // _baseExtension
       [false, false, false, true], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
-      ethers.utils.parseEther("0.01"), //  _price
-      dropStartFuture, //  _dropStart
-      10, //  _maxSupply
-      6, //  _reserve
+      [ethers.utils.parseEther("0.01"), dropStartFuture, 10, 6, 500], //  _price, _dropStart, _maxSupply, _reserve, _royaltiesFees (100 = 1%)
       royalties.address, // _royaltiesAddress
-      500 // _royaltiesFees, 100 = 1%
+      admin.address
     );
     await CC_onlyOwner.deployed();
 
@@ -44,12 +47,9 @@ describe("ApillonNFT", function () {
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // _baseExtension
       [true, true, true, true], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
-      ethers.utils.parseEther("0.01"), //  _price
-      dropStartFuture, //  _dropStart
-      10, //  _maxSupply
-      6, //  _reserve
+      [ethers.utils.parseEther("0.01"), dropStartFuture, 10, 6, 5], //  _price, _dropStart, _maxSupply, _reserve, _royaltiesFees (100 = 1%)
       royalties.address, // _royaltiesAddress
-      5 // _royaltiesFees
+      admin.address // _admin
     );
     await CC_drop_soulbound_revokable.deployed();
 
@@ -59,12 +59,9 @@ describe("ApillonNFT", function () {
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // _baseExtension
       [true, false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
-      ethers.utils.parseEther("0.01"), //  _price
-      dropStartFuture, //  _dropStart
-      10, //  _maxSupply
-      6, //  _reserve
+      [ethers.utils.parseEther("0.01"), dropStartFuture, 10, 6, 500], //  _price, _dropStart, _maxSupply, _reserve, _royaltiesFees (100 = 1%)
       royalties.address, // _royaltiesAddress
-      500 // _royaltiesFees, 100 = 1%
+      admin.address // _admin
     );
     await CC_manual_drop.deployed();
 
@@ -74,22 +71,21 @@ describe("ApillonNFT", function () {
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // _baseExtension
       [false, false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
-      ethers.utils.parseEther("0.01"), //  _price
-      dropStartFuture, //  _dropStart
-      10, //  _maxSupply
-      6, //  _reserve
+      [ethers.utils.parseEther("0.01"), dropStartFuture, 10, 6, 500], //  _price, _dropStart, _maxSupply, _reserve, _royaltiesFees (100 = 1%)
       royalties.address, // _royaltiesAddress
-      500 // _royaltiesFees, 100 = 1%
+      admin.address // _admin
     );
     await CC_manual.deployed();
   });
 
-  it("Deployer should be the owner of the contract", async function () {
-    expect(await CC_onlyOwner.owner()).to.equal(owner.address);
+  it("Deployer should be the controller of the contract", async function () {
+    expect(
+      await CC_onlyOwner.hasRole(controllerRole, controller.address)
+    ).to.equal(true);
   });
 
   it("tokenURI should be same as set in constructor", async function () {
-    await CC_onlyOwner.ownerMint(owner.address, 3);
+    await CC_onlyOwner.ownerMint(controller.address, 3);
     expect(await CC_onlyOwner.tokenURI(3)).to.equal(
       "https://api.example.com/nfts/1/3.json"
     );
@@ -101,39 +97,39 @@ describe("ApillonNFT", function () {
 
   it("CC_onlyOwner only owner can mint", async function () {
     await expect(
-      CC_onlyOwner.connect(account1).ownerMint(owner.address, 1)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+      CC_onlyOwner.connect(account1).ownerMint(controller.address, 1)
+    ).to.be.revertedWith(``);
 
     await expect(
-      CC_onlyOwner.connect(account1).mint(owner.address, 1)
+      CC_onlyOwner.connect(account1).mint(controller.address, 1)
     ).to.be.revertedWith("isDrop == false");
   });
 
   it("CC_onlyOwner allow only maxSupply", async function () {
-    await CC_onlyOwner.ownerMint(owner.address, 6);
-    await CC_onlyOwner.ownerMint(owner.address, 4);
-    await expect(CC_onlyOwner.ownerMint(owner.address, 1)).to.be.reverted;
+    await CC_onlyOwner.ownerMint(controller.address, 6);
+    await CC_onlyOwner.ownerMint(controller.address, 4);
+    await expect(CC_onlyOwner.ownerMint(controller.address, 1)).to.be.reverted;
   });
 
   it("CC_onlyOwner can set metadata for specific token", async function () {
-    await CC_onlyOwner.connect(owner).ownerMint(owner.address, 1);
+    await CC_onlyOwner.connect(controller).ownerMint(controller.address, 1);
     expect(await CC_onlyOwner.tokenURI(1)).to.equal(
       "https://api.example.com/nfts/1/1.json"
     );
     const tokenUri = "https://custom.com/1";
-    await CC_onlyOwner.connect(owner).setTokenURI(1, tokenUri);
+    await CC_onlyOwner.connect(controller).setTokenURI(1, tokenUri);
     expect(await CC_onlyOwner.tokenURI(1)).to.equal(tokenUri);
-    await CC_onlyOwner.connect(owner).setTokenURI(1, "");
+    await CC_onlyOwner.connect(controller).setTokenURI(1, "");
     expect(await CC_onlyOwner.tokenURI(1)).to.equal(
       "https://api.example.com/nfts/1/1.json"
     );
   });
 
   it("CC_onlyOwner owner can mint with setting URIs", async function () {
-    await CC_onlyOwner.connect(owner).ownerMint(owner.address, 1);
+    await CC_onlyOwner.connect(controller).ownerMint(controller.address, 1);
     const tokenUri = "http://test.com";
-    await CC_onlyOwner.connect(owner).ownerMintIdsWithUri(
-      owner.address,
+    await CC_onlyOwner.connect(controller).ownerMintIdsWithUri(
+      controller.address,
       1,
       [],
       [tokenUri]
@@ -146,37 +142,43 @@ describe("ApillonNFT", function () {
   });
 
   it("CC_drop_soulbound_revokable allow only reserve", async function () {
-    await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
-    await CC_drop_soulbound_revokable.ownerMint(owner.address, 4);
+    await CC_drop_soulbound_revokable.ownerMint(controller.address, 2);
+    await CC_drop_soulbound_revokable.ownerMint(controller.address, 4);
     await expect(
-      CC_drop_soulbound_revokable.ownerMint(owner.address, 1)
+      CC_drop_soulbound_revokable.ownerMint(controller.address, 1)
     ).to.be.revertedWith("quantity > reserve");
   });
 
   it("CC_drop_soulbound_revokable regular mint", async function () {
     await expect(
-      CC_drop_soulbound_revokable.connect(account1).mint(owner.address, 2)
+      CC_drop_soulbound_revokable.connect(account1).mint(controller.address, 2)
     ).to.be.revertedWith("Minting not started yet.");
 
     await expect(
       CC_drop_soulbound_revokable.connect(account1).setDropStart(
         dropStartPresent
       )
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     await CC_drop_soulbound_revokable.setDropStart(dropStartPresent);
 
     await expect(
-      CC_drop_soulbound_revokable.connect(account1).mint(owner.address, 2)
+      CC_drop_soulbound_revokable.connect(account1).mint(controller.address, 2)
     ).to.be.revertedWith("Insufficient amount.");
 
-    await CC_drop_soulbound_revokable.connect(account1).mint(owner.address, 2, {
-      value: ethers.utils.parseEther("0.01").mul("2"),
-    });
+    await CC_drop_soulbound_revokable.connect(account1).mint(
+      controller.address,
+      2,
+      {
+        value: ethers.utils.parseEther("0.01").mul("2"),
+      }
+    );
 
     await expect(
       CC_drop_soulbound_revokable.connect(account1).mintIds(
-        owner.address,
+        controller.address,
         0,
         [1, 2]
       )
@@ -186,16 +188,18 @@ describe("ApillonNFT", function () {
   });
 
   it("Check burn availabilty", async function () {
-    await CC_onlyOwner.ownerMint(owner.address, 6);
+    await CC_onlyOwner.ownerMint(controller.address, 6);
     await expect(CC_onlyOwner.connect(account1).burn(1)).to.be.revertedWith(
-      "Ownable: caller is not the owner"
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
     );
     await expect(CC_onlyOwner.burn(1)).to.be.revertedWith("NFT not revokable!");
 
-    await CC_drop_soulbound_revokable.ownerMint(owner.address, 6);
+    await CC_drop_soulbound_revokable.ownerMint(controller.address, 6);
     await expect(
       CC_drop_soulbound_revokable.connect(account1).burn(1)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
     await CC_drop_soulbound_revokable.burn(1);
 
     await expect(CC_drop_soulbound_revokable.burn(10)).to.be.revertedWith(
@@ -205,20 +209,22 @@ describe("ApillonNFT", function () {
 
   it("Check mint after burn", async function () {
     //mint 2 NFTs
-    await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
-    let ids = await CC_drop_soulbound_revokable.walletOfOwner(owner.address);
+    await CC_drop_soulbound_revokable.ownerMint(controller.address, 2);
+    let ids = await CC_drop_soulbound_revokable.walletOfOwner(
+      controller.address
+    );
     expect(ids.length).to.equal(2);
     expect(ids[0]).to.equal(1);
     expect(ids[1]).to.equal(2);
 
     //burn 1 NFTs
-    await CC_drop_soulbound_revokable.connect(owner).burn(1);
-    ids = await CC_drop_soulbound_revokable.walletOfOwner(owner.address);
+    await CC_drop_soulbound_revokable.connect(controller).burn(1);
+    ids = await CC_drop_soulbound_revokable.walletOfOwner(controller.address);
     expect(ids.length).to.equal(1);
 
     //mint 2 NFTs
-    await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
-    ids = await CC_drop_soulbound_revokable.walletOfOwner(owner.address);
+    await CC_drop_soulbound_revokable.ownerMint(controller.address, 2);
+    ids = await CC_drop_soulbound_revokable.walletOfOwner(controller.address);
     expect(ids.length).to.equal(3);
     expect(ids[0]).to.equal(2);
     expect(ids[1]).to.equal(3);
@@ -226,13 +232,13 @@ describe("ApillonNFT", function () {
   });
 
   it("Check transfer availabilty", async function () {
-    await CC_onlyOwner.ownerMint(owner.address, 6);
-    await CC_onlyOwner.transferFrom(owner.address, account1.address, 1);
+    await CC_onlyOwner.ownerMint(controller.address, 6);
+    await CC_onlyOwner.transferFrom(controller.address, account1.address, 1);
 
-    await CC_drop_soulbound_revokable.ownerMint(owner.address, 6);
+    await CC_drop_soulbound_revokable.ownerMint(controller.address, 6);
     await expect(
       CC_drop_soulbound_revokable.transferFrom(
-        owner.address,
+        controller.address,
         account1.address,
         1
       )
@@ -242,7 +248,9 @@ describe("ApillonNFT", function () {
   it("Only owner can updateRoyaltyRecipient", async function () {
     await expect(
       CC_onlyOwner.connect(account1).updateRoyaltyRecipient(account2.address)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     await CC_onlyOwner.updateRoyaltyRecipient(account2.address);
   });
@@ -250,7 +258,9 @@ describe("ApillonNFT", function () {
   it("Only owner can setDropStart", async function () {
     await expect(
       CC_drop_soulbound_revokable.connect(account1).setDropStart(0)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     await CC_drop_soulbound_revokable.setDropStart(10);
 
@@ -271,7 +281,7 @@ describe("ApillonNFT", function () {
   });
 
   it("Change baseURI", async function () {
-    await CC_onlyOwner.ownerMint(owner.address, 1);
+    await CC_onlyOwner.ownerMint(controller.address, 1);
 
     expect(await CC_onlyOwner.tokenURI(1)).to.equal(
       "https://api.example.com/nfts/1/1.json"
@@ -282,11 +292,15 @@ describe("ApillonNFT", function () {
 
     await expect(
       CC_onlyOwner.connect(account1).setBaseURI(baseURI)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     await expect(
       CC_onlyOwner.connect(account1).setBaseExtension(baseEXT)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     await CC_onlyOwner.setBaseURI(baseURI);
     await CC_onlyOwner.setBaseExtension(baseEXT);
@@ -302,24 +316,26 @@ describe("ApillonNFT", function () {
       { value: ethers.utils.parseEther("0.01") }
     );
 
-    const ownerBalanceBefore = await owner.getBalance();
+    const ownerBalanceBefore = await controller.getBalance();
 
     await expect(
       CC_drop_soulbound_revokable.connect(account1).withdrawRaised(
-        owner.address,
+        controller.address,
         ethers.utils.parseEther("0.01")
       )
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     const tx = await CC_drop_soulbound_revokable.withdrawRaised(
-      owner.address,
+      controller.address,
       ethers.utils.parseEther("0.01")
     );
 
     const receipt = await tx.wait();
     const gasSpent = receipt.gasUsed.mul(receipt.effectiveGasPrice);
 
-    const ownerBalanceAfter = await owner.getBalance();
+    const ownerBalanceAfter = await controller.getBalance();
 
     expect(ownerBalanceAfter.add(gasSpent).sub(ownerBalanceBefore)).to.equal(
       ethers.utils.parseEther("0.01")
@@ -344,38 +360,47 @@ describe("ApillonNFT", function () {
   it("CC_manual_drop regular mint", async function () {
     // Mint with non-owner
     await expect(
-      CC_manual_drop.connect(account1).mint(owner.address, 2)
+      CC_manual_drop.connect(account1).mint(controller.address, 2)
     ).to.be.revertedWith("Minting not started yet.");
 
     await expect(
       CC_manual_drop.connect(account1).setDropStart(dropStartPresent)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     await CC_manual_drop.setDropStart(dropStartPresent);
 
     await expect(
-      CC_manual_drop.connect(account1).mint(owner.address, 2)
+      CC_manual_drop.connect(account1).mint(controller.address, 2)
     ).to.be.revertedWith("isAutoIncrement OFF: specify IDs");
 
     await expect(
-      CC_manual_drop.connect(account1).mintIds(owner.address, 0, [1, 2])
+      CC_manual_drop.connect(account1).mintIds(controller.address, 0, [1, 2])
     ).to.be.revertedWith("Insufficient amount.");
 
-    await CC_manual_drop.connect(account1).mintIds(owner.address, 0, [1, 2], {
-      value: ethers.utils.parseEther("0.01").mul("2"),
-    });
+    await CC_manual_drop.connect(account1).mintIds(
+      controller.address,
+      0,
+      [1, 2],
+      {
+        value: ethers.utils.parseEther("0.01").mul("2"),
+      }
+    );
 
     // Owner mint
     await expect(
-      CC_manual_drop.connect(owner).ownerMintIds(owner.address, 0, [1])
+      CC_manual_drop.connect(controller).ownerMintIds(controller.address, 0, [
+        1,
+      ])
     ).to.be.revertedWith("ERC721: token already minted");
 
     await expect(
-      CC_manual_drop.connect(owner).ownerMintIds(owner.address, 2, [])
+      CC_manual_drop.connect(controller).ownerMintIds(controller.address, 2, [])
     ).to.be.revertedWith("isAutoIncrement OFF: specify IDs");
 
-    await CC_manual_drop.connect(owner).ownerMintIds(
-      owner.address,
+    await CC_manual_drop.connect(controller).ownerMintIds(
+      controller.address,
       0,
       [777, 888]
     );
@@ -384,36 +409,46 @@ describe("ApillonNFT", function () {
   it("CC_manual owner mint", async function () {
     // Try mint with non-owner
     await expect(
-      CC_manual.connect(account1).mint(owner.address, 2)
+      CC_manual.connect(account1).mint(controller.address, 2)
     ).to.be.revertedWith("isDrop == false");
 
     await expect(
       CC_manual.connect(account1).setDropStart(dropStartPresent)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
+    ).to.be.revertedWith(
+      `AccessControl: account ${account1.address.toLowerCase()} is missing role ${controllerRole}`
+    );
 
     await CC_manual.setDropStart(dropStartPresent);
 
     await expect(
-      CC_manual.connect(account1).mint(owner.address, 2)
+      CC_manual.connect(account1).mint(controller.address, 2)
     ).to.be.revertedWith("isDrop == false");
 
     // Owner mint
-    await CC_manual.connect(owner).ownerMintIds(owner.address, 0, [1, 2, 3]);
+    await CC_manual.connect(controller).ownerMintIds(
+      controller.address,
+      0,
+      [1, 2, 3]
+    );
 
     await expect(
-      CC_manual.connect(owner).ownerMintIds(owner.address, 0, [1])
+      CC_manual.connect(controller).ownerMintIds(controller.address, 0, [1])
     ).to.be.revertedWith("ERC721: token already minted");
 
     await expect(
-      CC_manual.connect(owner).ownerMintIds(owner.address, 2, [])
+      CC_manual.connect(controller).ownerMintIds(controller.address, 2, [])
     ).to.be.revertedWith("isAutoIncrement OFF: specify IDs");
 
-    await CC_manual.connect(owner).ownerMintIds(owner.address, 0, [777, 888]);
+    await CC_manual.connect(controller).ownerMintIds(
+      controller.address,
+      0,
+      [777, 888]
+    );
   });
 
   it("CC_manual owner can mint with setting URIs", async function () {
-    await CC_manual.connect(owner).ownerMintIdsWithUri(
-      owner.address,
+    await CC_manual.connect(controller).ownerMintIdsWithUri(
+      controller.address,
       0,
       [1, 5, 6],
       ["", "https://test.com/5", "https://test.com/6"]

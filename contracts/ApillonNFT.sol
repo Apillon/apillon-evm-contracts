@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.21;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import "./ERC2981.sol";
 
-contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
+contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
+
+    bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
+
     using Strings for uint256;
 
     /**
@@ -85,12 +88,14 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
      * @param _initBaseURI - Metadata baseURI
      * @param _baseExtension - Metadata baseExtension
      * @param _settings - Bool settings [isDrop, isSoulbound, isRevokable]
-     * @param _pricePerMint - Mint price (only relevant if isDrop == true)
-     * @param _dropStart - drop start (only relevant if isDrop == true)
-     * @param _maxSupply - max supply (0 = unlimited)
-     * @param _reserve - reserve for owner (only relevant if isDrop == true)
-     * @param _royaltiesAddress - royalties address
-     * @param _royaltiesFees - royalties fee
+     * @param _numbers - All uints256 inputs in an array [_pricePerMint, _dropStart, _maxSupply, _reserve, _royaltiesFees].
+     * _pricePerMint - Mint price (only relevant if isDrop == true)
+     * _dropStart - drop start (only relevant if isDrop == true)
+     * _maxSupply - max supply (0 = unlimited)
+     * _reserve - reserve for owner (only relevant if isDrop == true)ddress
+     * _royaltiesFees - royalties fee
+     * @param _royaltiesAddress - royalties a
+     * @param _admin - Address of admin role
      */
     constructor(
         string memory _name,
@@ -98,12 +103,9 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         string memory _initBaseURI,
         string memory _baseExtension,
         bool[] memory _settings,
-        uint256 _pricePerMint,
-        uint256 _dropStart,
-        uint256 _maxSupply,
-        uint256 _reserve,
+        uint256[] memory _numbers, // [_pricePerMint, _dropStart, _maxSupply, _reserve, _royaltiesFees]
         address _royaltiesAddress,
-        uint256 _royaltiesFees
+        address _admin
     ) ERC721(_name, _symbol) {
         baseURI = _initBaseURI;
         baseExtension = _baseExtension;
@@ -113,17 +115,19 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         isRevokable = _settings[2];
         isAutoIncrement = _settings[3];
         
-        pricePerMint = _pricePerMint;
-        dropStart = _dropStart;
-        maxSupply = _maxSupply;
+        pricePerMint = _numbers[0];
+        dropStart = _numbers[1];
+        maxSupply = _numbers[2];
         if (isDrop) {
-            require(_reserve <= maxSupply, "reserve too high.");
-            reserve = _reserve;
+            require(_numbers[3] <= maxSupply, "reserve too high.");
+            reserve = _numbers[3];
         }
 
         royaltiesAddress = _royaltiesAddress;
-        require(_royaltiesFees <= 10000, "royaltiesFees too high.");
-        royaltiesFees = _royaltiesFees;
+        require(_numbers[4] <= 10000, "royaltiesFees too high.");
+        royaltiesFees = _numbers[4];
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        _grantRole(CONTROLLER_ROLE, msg.sender);
     }
 
     /**
@@ -133,7 +137,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721Enumerable, ERC2981)
+        override(ERC721Enumerable, ERC2981, AccessControl)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -215,7 +219,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     function ownerMint(
         address to,
         uint256 numToMint
-    ) external onlyOwner {
+    ) external onlyRole(CONTROLLER_ROLE) {
         ownerMintIdsWithUri(to, numToMint, new uint256[](0), new string[](0));
     }
 
@@ -230,7 +234,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         address to,
         uint256 numToMint,
         uint256[] memory idsToMint
-    ) public onlyOwner {
+    ) public onlyRole(CONTROLLER_ROLE) {
         ownerMintIdsWithUri(to, numToMint, idsToMint, new string[](0));
     }
 
@@ -248,7 +252,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         uint256 numToMint,
         uint256[] memory idsToMint,
         string[] memory URIs
-    ) public onlyOwner {
+    ) public onlyRole(CONTROLLER_ROLE) {
         if (isAutoIncrement) {
             require(
                 numToMint > 0 && idsToMint.length == 0, 
@@ -303,7 +307,7 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
      * Function that can destroy a NFT if "revokable" functionality is enabled on the contract.
      * @param tokenId Id of the token we are burning.
      */
-    function burn(uint tokenId) external onlyOwner {
+    function burn(uint tokenId) external onlyRole(CONTROLLER_ROLE) {
         require(isRevokable, "NFT not revokable!");
         _burn(tokenId);
     }
@@ -361,19 +365,19 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     }
 
     // only owner
-    function setBaseURI(string memory _newBaseURI) external onlyOwner {
+    function setBaseURI(string memory _newBaseURI) external onlyRole(CONTROLLER_ROLE) {
         baseURI = _newBaseURI;
     }
 
-    function setTokenURI(uint256 _tokenId, string memory _newTokenURI) external onlyOwner {
+    function setTokenURI(uint256 _tokenId, string memory _newTokenURI) external onlyRole(CONTROLLER_ROLE) {
         tokenMetadataUriOverride[_tokenId] = _newTokenURI;
     }
 
-    function setBaseExtension(string memory _newBaseExtension) external onlyOwner {
+    function setBaseExtension(string memory _newBaseExtension) external onlyRole(CONTROLLER_ROLE) {
         baseExtension = _newBaseExtension;
     }
 
-    function withdrawRaised(address to, uint256 amount) external onlyOwner {
+    function withdrawRaised(address to, uint256 amount) external onlyRole(CONTROLLER_ROLE) {
         (bool os, ) = to.call{value: amount}("");
         require(os);
     }
@@ -381,14 +385,14 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     /**
      * Set royalties address.
      */
-    function updateRoyaltyRecipient(address newRoyaltyRecipient) external onlyOwner {
+    function updateRoyaltyRecipient(address newRoyaltyRecipient) external onlyRole(CONTROLLER_ROLE) {
         royaltiesAddress = newRoyaltyRecipient;
     }
 
     /**
      * Set dropStart (only if not started yet)
      */
-    function setDropStart(uint _dropStart) external onlyOwner {
+    function setDropStart(uint _dropStart) external onlyRole(CONTROLLER_ROLE) {
         require(dropStart > block.timestamp, "Minting already started!");
         dropStart = _dropStart;
     }
