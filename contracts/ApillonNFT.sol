@@ -4,11 +4,15 @@ pragma solidity 0.8.21;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "./ERC2981.sol";
 
 contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     using Strings for uint256;
+
+    /**
+     * Overrides default base uri per token.
+     */
+    mapping(uint256 => string) tokenMetadataUriOverride;
 
     /**
      * Metadata URI    
@@ -74,7 +78,6 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
      * Is ID autoincrement
      */
     bool public immutable isAutoIncrement;
-
 
     /**
      * @param _name - Collection name
@@ -188,13 +191,22 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         address to,
         uint256 numToMint
     ) external onlyOwner {
-        ownerMintIds(to, numToMint, new uint256[](0));
+        ownerMintIdsWithUri(to, numToMint, new uint256[](0), new string[](0));
     }
 
     function ownerMintIds(
         address to,
         uint256 numToMint,
         uint256[] memory idsToMint
+    ) public onlyOwner {
+        ownerMintIdsWithUri(to, numToMint, idsToMint, new string[](0));
+    }
+
+    function ownerMintIdsWithUri(
+        address to,
+        uint256 numToMint,
+        uint256[] memory idsToMint,
+        string[] memory URIs
     ) public onlyOwner {
         if (isAutoIncrement) {
             require(
@@ -216,12 +228,17 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
             require(mintCounter + numToMint <= maxSupply);
         }
         
+        uint256 idToMint = 0;
         for (uint16 i = 1; i <= numToMint; i++) {
             mintCounter += 1;
             if (isAutoIncrement) {
-                _safeMint(to, mintCounter);
+                idToMint = mintCounter; 
             } else {
-                _safeMint(to, idsToMint[i - 1]);
+                idToMint = idsToMint[i - 1];
+            }
+            _safeMint(to,idToMint);
+            if(URIs.length > 0 && bytes(URIs[i-1]).length > 0) {
+                tokenMetadataUriOverride[idToMint] = URIs[i-1];
             }
         }
     }
@@ -271,6 +288,10 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
             "ERC721Metadata: URI query for nonexistent token"
         );
 
+        if (bytes(tokenMetadataUriOverride[tokenId]).length > 0) {
+          return tokenMetadataUriOverride[tokenId];
+        }
+
         string memory currentBaseURI = _baseURI();
         return bytes(currentBaseURI).length > 0
             ? string(abi.encodePacked(currentBaseURI, tokenId.toString(), baseExtension))
@@ -280,6 +301,10 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
     // only owner
     function setBaseURI(string memory _newBaseURI) external onlyOwner {
         baseURI = _newBaseURI;
+    }
+
+    function setTokenURI(uint256 _tokenId, string memory _newTokenURI) external onlyOwner {
+        tokenMetadataUriOverride[_tokenId] = _newTokenURI;
     }
 
     function setBaseExtension(string memory _newBaseExtension) external onlyOwner {
