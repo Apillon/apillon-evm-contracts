@@ -129,6 +129,22 @@ describe("ApillonNFT", function () {
     );
   });
 
+  it("CC_onlyOwner owner can mint with setting URIs", async function () {
+    await CC_onlyOwner.connect(owner).ownerMint(owner.address, 1);
+    const tokenUri = "http://test.com";
+    await CC_onlyOwner.connect(owner).ownerMintIdsWithUri(
+      owner.address,
+      1,
+      [],
+      [tokenUri]
+    );
+
+    expect(await CC_onlyOwner.tokenURI(1)).to.equal(
+      "https://api.example.com/nfts/1/1.json"
+    );
+    expect(await CC_onlyOwner.tokenURI(2)).to.equal(tokenUri);
+  });
+
   it("CC_drop_soulbound_revokable allow only reserve", async function () {
     await CC_drop_soulbound_revokable.ownerMint(owner.address, 2);
     await CC_drop_soulbound_revokable.ownerMint(owner.address, 4);
@@ -393,5 +409,19 @@ describe("ApillonNFT", function () {
     ).to.be.revertedWith("isAutoIncrement OFF: specify IDs");
 
     await CC_manual.connect(owner).ownerMintIds(owner.address, 0, [777, 888]);
+  });
+
+  it("CC_manual owner can mint with setting URIs", async function () {
+    await CC_manual.connect(owner).ownerMintIdsWithUri(
+      owner.address,
+      0,
+      [1, 5, 6],
+      ["", "https://test.com/5", "https://test.com/6"]
+    );
+
+    expect(await CC_manual.tokenURI(1)).to.equal(
+      "https://api.example.com/nfts/1/1.json"
+    );
+    expect(await CC_manual.tokenURI(5)).to.equal("https://test.com/5");
   });
 });
