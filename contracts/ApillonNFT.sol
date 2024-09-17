@@ -126,6 +126,10 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         royaltiesFees = _royaltiesFees;
     }
 
+    /**
+     * Checks which interfaces this contract supports.
+     * @param interfaceId bytes4 of keccak of all functions supported in a contract.
+     */
     function supportsInterface(bytes4 interfaceId)
         public
         view
@@ -135,11 +139,19 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         return super.supportsInterface(interfaceId);
     }
 
-    // internal
+    /**
+     * Internal override for baseURI.
+     */
     function _baseURI() internal view override returns (string memory) {
         return baseURI;
     }
 
+    /**
+     * If "drop" functionality is enables users can buy NFTs directly from the contract for a
+     * specified price. This takes native chain token as payments and mints the user a NFT.
+     * @param to Address receiving the NFTs.
+     * @param numToMint Amount of NFTs to mint.
+     */
     function mint(
         address to,
         uint256 numToMint
@@ -147,6 +159,13 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         mintIds(to, numToMint, new uint256[](0));
     }
 
+    /**
+     * If "drop" functionality is enables users can buy NFTs directly from the contract for a
+     * specified price. This takes native chain token as payments and mints the user a NFT.
+     * @param to Address receiving the NFTs.
+     * @param numToMint Amount of NFTs to mint.
+     * @param idsToMint List of NFTs IDs to mint.
+     */
     function mintIds(
         address to,
         uint256 numToMint,
@@ -187,6 +206,12 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         }
     }
 
+    /**
+     * If "drop" functionality is disabled or its enabled and reserve for owner is specified then
+     * only contract owner can mint the NFTs via this function.
+     * @param to Address receiving the NFTs.
+     * @param numToMint Amount of NFTs to mint.
+     */
     function ownerMint(
         address to,
         uint256 numToMint
@@ -194,6 +219,13 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         ownerMintIdsWithUri(to, numToMint, new uint256[](0), new string[](0));
     }
 
+    /**
+     * If "drop" functionality is disabled or its enabled and reserve for owner is specified then
+     * only contract owner can mint the NFTs via this function.
+     * @param to Address receiving the NFTs.
+     * @param numToMint Amount of NFTs to mint.
+     * @param idsToMint List of NFTs IDs to mint.
+     */
     function ownerMintIds(
         address to,
         uint256 numToMint,
@@ -202,6 +234,15 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         ownerMintIdsWithUri(to, numToMint, idsToMint, new string[](0));
     }
 
+    /**
+     * If "drop" functionality is disabled or its enabled and reserve for owner is specified then
+     * only contract owner can mint the NFTs via this function. Owner can choose to specify to
+     * override/set specific metadata URI for specific NFTs ignoring the baseURI and extension.
+     * @param to Address receiving the NFTs.
+     * @param numToMint Amount of NFTs to mint.
+     * @param idsToMint List of NFTs IDs to mint.
+     * @param URIs List of metadata URIs for minting NFTs.
+     */
     function ownerMintIdsWithUri(
         address to,
         uint256 numToMint,
@@ -243,6 +284,12 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         }
     }
 
+    /**
+     * Override of internal _transfer function to disable transfer in case of soulbound NFTs.
+     * @param from From address.
+     * @param to To address.
+     * @param tokenId Token id we are transfering.
+     */
     function _transfer(
         address from,
         address to,
@@ -252,11 +299,19 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         super._transfer(from, to, tokenId);
     }
 
+    /**
+     * Function that can destroy a NFT if "revokable" functionality is enabled on the contract.
+     * @param tokenId Id of the token we are burning.
+     */
     function burn(uint tokenId) external onlyOwner {
         require(isRevokable, "NFT not revokable!");
         _burn(tokenId);
     }
 
+    /**
+     * Function to get all the token ids a user has in the wallet.
+     * @param _owner Wallet address.
+     */
     function walletOfOwner(address _owner) external view returns (uint256[] memory)
     {
         uint256 ownerTokenCount = balanceOf(_owner);
@@ -267,6 +322,9 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         return tokenIds;
     }
 
+    /**
+     * Function that returns all token ids that exist on the smart contract.
+     */
     function allTokens() external view returns (uint256[] memory)
     {
         uint256 supply = totalSupply();
@@ -277,10 +335,14 @@ contract ApillonNFT is ERC721Enumerable, Ownable, ERC2981 {
         return tokenIds;
     }
 
+    /**
+     * Function to view the metadate URI of a specific NFT.
+     * @param tokenId NFT Id.
+     */
     function tokenURI(uint256 tokenId)
-    public
-    view
-    override
+      public
+      view
+      override
     returns (string memory)
     {
         require(
