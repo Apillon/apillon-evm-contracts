@@ -38,6 +38,12 @@ Make sure the correct collecation name and symbol an URI are set.
 
 Run `npx hardhat verify --network moonbeamTestnet <contract-address> <constructor-param1> <constructor-param2> <constructor-param3> ...`.
 
-#### OR
+OR
 
 Run `npx hardhat verify --network moonbeamTestnet <contract-address> --constructor-args ./scripts/collection-args.js`.
+
+### Claim Token
+
+Make sure the correct deploy arguments set in `scripts/deploy-claim-token.js`.
+
+`npx hardhat run --network moonbeamTestnet scripts/deploy-claim-token.js`
