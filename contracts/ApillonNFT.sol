@@ -92,9 +92,9 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
      * _pricePerMint - Mint price (only relevant if isDrop == true)
      * _dropStart - drop start (only relevant if isDrop == true)
      * _maxSupply - max supply (0 = unlimited)
-     * _reserve - reserve for owner (only relevant if isDrop == true)ddress
+     * _reserve - reserve for owner (only relevant if isDrop == true)
      * _royaltiesFees - royalties fee
-     * @param _royaltiesAddress - royalties a
+     * @param _royaltiesAddress - royalties address
      * @param _admin - Address of admin role
      */
     constructor(
@@ -151,7 +151,7 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
     }
 
     /**
-     * If "drop" functionality is enables users can buy NFTs directly from the contract for a
+     * If "drop" functionality is enabled users can buy NFTs directly from the contract for a
      * specified price. This takes native chain token as payments and mints the user a NFT.
      * @param to Address receiving the NFTs.
      * @param numToMint Amount of NFTs to mint.
@@ -164,7 +164,7 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
     }
 
     /**
-     * If "drop" functionality is enables users can buy NFTs directly from the contract for a
+     * If "drop" functionality is enabled users can buy NFTs directly from the contract for a
      * specified price. This takes native chain token as payments and mints the user a NFT.
      * @param to Address receiving the NFTs.
      * @param numToMint Amount of NFTs to mint.
@@ -202,11 +202,7 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
 
         for (uint16 i = 1; i <= numToMint; i++) {
             mintCounter += 1;
-            if (isAutoIncrement) {
-                _safeMint(to, mintCounter);
-            } else {
-                _safeMint(to, idsToMint[i - 1]);
-            }
+            _safeMint(to, isAutoIncrement ? mintCounter : idsToMint[i - 1]);
         }
     }
 
@@ -340,7 +336,7 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
     }
 
     /**
-     * Function to view the metadate URI of a specific NFT.
+     * Function to view the metadata URI of a specific NFT.
      * @param tokenId NFT Id.
      */
     function tokenURI(uint256 tokenId)
