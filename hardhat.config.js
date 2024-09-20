@@ -48,6 +48,7 @@ module.exports = {
   networks: {
     hardhat: {
       hardfork: "shanghai",
+      blockGasLimit: 6000000,
     },
     polygonMumbai: {
       url: mumbaiRPC,

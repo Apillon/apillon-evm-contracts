@@ -73,7 +73,7 @@ describe("ApillonNFT", function () {
       "https://api.example.com/nfts/1/", // _initBaseURI
       ".json", // _baseExtension
       [false, false, false, false], //  _settings - [isDrop, isSoulbound, isRevokable, isAutoIncrement]
-      [ethers.utils.parseEther("0.01"), dropStartFuture, 10, 6, 500], //  _price, _dropStart, _maxSupply, _reserve, _royaltiesFees (100 = 1%)
+      [ethers.utils.parseEther("0.01"), dropStartFuture, 50, 6, 500], //  _price, _dropStart, _maxSupply, _reserve, _royaltiesFees (100 = 1%)
       royalties.address, // _royaltiesAddress
       admin.address // _admin
     );
@@ -145,12 +145,14 @@ describe("ApillonNFT", function () {
   it("CC_onlyOwner owner can mint with setting URIs", async function () {
     await CC_onlyOwner.connect(controller).ownerMint(controller.address, 1);
     const tokenUri = "http://test.com";
-    await CC_onlyOwner.connect(controller).ownerMintIdsWithUri(
-      controller.address,
-      1,
-      [],
-      [tokenUri]
-    );
+    const mints = [];
+    mints.push({
+      to: controller.address,
+      numToMint: 1,
+      idsToMint: [],
+      URIs: [tokenUri],
+    });
+    await CC_onlyOwner.connect(controller).ownerMintIdsWithUri(mints);
 
     expect(await CC_onlyOwner.tokenURI(1)).to.equal(
       "https://api.example.com/nfts/1/1.json"
@@ -464,16 +466,45 @@ describe("ApillonNFT", function () {
   });
 
   it("CC_manual owner can mint with setting URIs", async function () {
-    await CC_manual.connect(controller).ownerMintIdsWithUri(
-      controller.address,
-      0,
-      [1, 5, 6],
-      ["", "https://test.com/5", "https://test.com/6"]
-    );
+    const mints = [];
+    mints.push({
+      to: controller.address,
+      numToMint: 0,
+      idsToMint: [1, 5, 6],
+      URIs: ["", "https://test.com/5", "https://test.com/6"],
+    });
+    await CC_manual.connect(controller).ownerMintIdsWithUri(mints);
 
     expect(await CC_manual.tokenURI(1)).to.equal(
       "https://api.example.com/nfts/1/1.json"
     );
     expect(await CC_manual.tokenURI(5)).to.equal("https://test.com/5");
+  });
+
+  it("CC_manual owner can mint multiple nfts to multiple addresses", async function () {
+    const mints = [];
+    mints.push({
+      to: controller.address,
+      numToMint: 0,
+      idsToMint: [1, 5, 6],
+      URIs: ["", "https://test.com/5", "https://test.com/6"],
+    });
+
+    for (let i = 0; i < 17; i++) {
+      mints.push({
+        to: account2.address,
+        numToMint: 0,
+        idsToMint: [7 + i],
+        URIs: [`https://test.com/${7 + i}`],
+      });
+    }
+
+    await CC_manual.connect(controller).ownerMintIdsWithUri(mints);
+
+    expect(await CC_manual.tokenURI(1)).to.equal(
+      "https://api.example.com/nfts/1/1.json"
+    );
+    expect(await CC_manual.tokenURI(5)).to.equal("https://test.com/5");
+    expect(await CC_manual.balanceOf(account2.address)).to.equal(17);
   });
 });
