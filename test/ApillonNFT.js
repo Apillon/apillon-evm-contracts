@@ -16,6 +16,8 @@ describe("ApillonNFT", function () {
   let controllerRole = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes("CONTROLLER_ROLE")
   );
+  let adminRole =
+    "0x0000000000000000000000000000000000000000000000000000000000000000";
 
   before(async () => {
     await hre.network.provider.send("hardhat_reset");
@@ -76,6 +78,21 @@ describe("ApillonNFT", function () {
       admin.address // _admin
     );
     await CC_manual.deployed();
+  });
+
+  it("Admin wallet should be the admin of the contract", async function () {
+    expect(await CC_onlyOwner.hasRole(adminRole, admin.address)).to.equal(true);
+  });
+
+  it("Transfer admin role", async function () {
+    await CC_onlyOwner.connect(admin).grantRole(adminRole, royalties.address);
+    await CC_onlyOwner.connect(admin).revokeRole(adminRole, admin.address);
+    expect(await CC_onlyOwner.hasRole(adminRole, admin.address)).to.equal(
+      false
+    );
+    expect(await CC_onlyOwner.hasRole(adminRole, royalties.address)).to.equal(
+      true
+    );
   });
 
   it("Deployer should be the controller of the contract", async function () {
