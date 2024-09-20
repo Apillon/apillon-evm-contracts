@@ -85,8 +85,10 @@ describe("ApillonNFT", function () {
   });
 
   it("Transfer admin role", async function () {
-    await CC_onlyOwner.connect(admin).grantRole(adminRole, royalties.address);
-    await CC_onlyOwner.connect(admin).revokeRole(adminRole, admin.address);
+    await CC_onlyOwner.connect(admin).transferAdmin(royalties.address);
+
+    // await CC_onlyOwner.connect(admin).grantRole(adminRole, royalties.address);
+    // await CC_onlyOwner.connect(admin).revokeRole(adminRole, admin.address);
     expect(await CC_onlyOwner.hasRole(adminRole, admin.address)).to.equal(
       false
     );

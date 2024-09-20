@@ -428,4 +428,9 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
     function getRoyaltyPercentage() public view virtual returns (uint256) {
         return royaltiesFees;
     }
+
+    function transferAdmin(address _newAdmin) external onlyRole(DEFAULT_ADMIN_ROLE) {
+      _grantRole(DEFAULT_ADMIN_ROLE, _newAdmin);
+      _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 }
