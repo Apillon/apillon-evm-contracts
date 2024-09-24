@@ -264,36 +264,37 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
     ) public onlyRole(CONTROLLER_ROLE) {
       uint256 idToMint = 0;
       for (uint16 j = 0; j < mints.length; j++) {
+        MintParameters memory mintTemp =  mints[j];
         if (isAutoIncrement) {
             require(
-                mints[j].numToMint > 0 && mints[j].idsToMint.length == 0, 
+                mintTemp.numToMint > 0 && mintTemp.idsToMint.length == 0, 
                 "isAutoIncrement ON: set numToMint > 0 & leave IDs empty"
             );
         } else {
             require(
-                mints[j].idsToMint.length > 0, 
+                mintTemp.idsToMint.length > 0, 
                 "isAutoIncrement OFF: specify IDs"
             );
-            mints[j].numToMint = mints[j].idsToMint.length;
+            mintTemp.numToMint = mintTemp.idsToMint.length;
         }
         if (isDrop) {
-            require(mints[j].numToMint <= reserve, "quantity > reserve"); 
-            reserve -= mints[j].numToMint;
+            require(mintTemp.numToMint <= reserve, "quantity > reserve"); 
+            reserve -= mintTemp.numToMint;
         } else {
-            require(mintCounter + mints[j].numToMint <= maxSupply, "quantity > supply");
+            require(mintCounter + mintTemp.numToMint <= maxSupply, "quantity > supply");
         }
         
         idToMint = 0;
-        for (uint8 i = 1; i <= mints[j].numToMint; i++) {
+        for (uint8 i = 0; i < mintTemp.numToMint; i++) {
             mintCounter += 1;
             if (isAutoIncrement) {
                 idToMint = mintCounter; 
             } else {
-                idToMint = mints[j].idsToMint[i - 1];
+                idToMint = mintTemp.idsToMint[i];
             }
-            _safeMint(mints[j].to, idToMint);
-            if(mints[j].URIs.length > 0 && bytes(mints[j].URIs[i-1]).length > 0) {
-                tokenMetadataUriOverride[idToMint] = mints[j].URIs[i-1];
+            _safeMint(mintTemp.to, idToMint);
+            if(mintTemp.URIs.length > 0 && bytes(mintTemp.URIs[i]).length > 0) {
+                tokenMetadataUriOverride[idToMint] = mintTemp.URIs[i];
             }
         }
       }
@@ -429,6 +430,11 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
         return royaltiesFees;
     }
 
+    /**
+     * @notice This is a dangerous function. If you set admin to wrong address it is lost forever.
+     * If you don't know what you are doing we recomment using grantRole and revokeRole invidually.
+     * @param _newAdmin Address of the new admin.
+     */
     function transferAdmin(address _newAdmin) external onlyRole(DEFAULT_ADMIN_ROLE) {
       _grantRole(DEFAULT_ADMIN_ROLE, _newAdmin);
       _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
