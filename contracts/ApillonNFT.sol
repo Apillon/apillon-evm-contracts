@@ -83,6 +83,16 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
     bool public immutable isAutoIncrement;
 
     /**
+     * 
+     */
+    struct MintParameters {
+        address to;
+        uint256 numToMint;
+        uint256[] idsToMint;
+        string[] URIs;
+    }
+
+    /**
      * @param _name - Collection name
      * @param _symbol - Collection symbol
      * @param _initBaseURI - Metadata baseURI
@@ -216,7 +226,9 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
         address to,
         uint256 numToMint
     ) external onlyRole(CONTROLLER_ROLE) {
-        ownerMintIdsWithUri(to, numToMint, new uint256[](0), new string[](0));
+        MintParameters[] memory mints = new MintParameters[](1);
+        mints[0] = MintParameters({to: to, numToMint: numToMint, idsToMint: new uint256[](0), URIs: new string[](0)});
+        ownerMintIdsWithUri(mints);
     }
 
     /**
@@ -231,57 +243,61 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
         uint256 numToMint,
         uint256[] memory idsToMint
     ) public onlyRole(CONTROLLER_ROLE) {
-        ownerMintIdsWithUri(to, numToMint, idsToMint, new string[](0));
+        MintParameters[] memory mints = new MintParameters[](1);
+        mints[0] = MintParameters({to: to, numToMint: numToMint, idsToMint: idsToMint, URIs: new string[](0)});
+        ownerMintIdsWithUri(mints);
     }
 
+  
     /**
      * If "drop" functionality is disabled or its enabled and reserve for owner is specified then
      * only contract owner can mint the NFTs via this function. Owner can choose to specify to
      * override/set specific metadata URI for specific NFTs ignoring the baseURI and extension.
-     * @param to Address receiving the NFTs.
-     * @param numToMint Amount of NFTs to mint.
-     * @param idsToMint List of NFTs IDs to mint.
-     * @param URIs List of metadata URIs for minting NFTs.
+     * @param mints array of mints     
+     * to Address receiving the NFTs.
+     *  numToMint Amount of NFTs to mint.
+     *  idsToMint List of NFTs IDs to mint.
+     *  URIs List of metadata URIs for minting NFTs.
      */
     function ownerMintIdsWithUri(
-        address to,
-        uint256 numToMint,
-        uint256[] memory idsToMint,
-        string[] memory URIs
+      MintParameters[] memory mints
     ) public onlyRole(CONTROLLER_ROLE) {
+      uint256 idToMint = 0;
+      for (uint16 j = 0; j < mints.length; j++) {
+        MintParameters memory mintTemp =  mints[j];
         if (isAutoIncrement) {
             require(
-                numToMint > 0 && idsToMint.length == 0, 
+                mintTemp.numToMint > 0 && mintTemp.idsToMint.length == 0, 
                 "isAutoIncrement ON: set numToMint > 0 & leave IDs empty"
             );
         } else {
             require(
-                idsToMint.length > 0, 
+                mintTemp.idsToMint.length > 0, 
                 "isAutoIncrement OFF: specify IDs"
             );
-            numToMint = idsToMint.length;
+            mintTemp.numToMint = mintTemp.idsToMint.length;
         }
-
         if (isDrop) {
-            require(numToMint <= reserve, "quantity > reserve"); 
-            reserve -= numToMint;
+            require(mintTemp.numToMint <= reserve, "quantity > reserve"); 
+            reserve -= mintTemp.numToMint;
         } else {
-            require(mintCounter + numToMint <= maxSupply);
+            require(mintCounter + mintTemp.numToMint <= maxSupply, "quantity > supply");
         }
         
-        uint256 idToMint = 0;
-        for (uint16 i = 1; i <= numToMint; i++) {
+        idToMint = 0;
+        for (uint8 i = 0; i < mintTemp.numToMint; i++) {
             mintCounter += 1;
             if (isAutoIncrement) {
                 idToMint = mintCounter; 
             } else {
-                idToMint = idsToMint[i - 1];
+                idToMint = mintTemp.idsToMint[i];
             }
-            _safeMint(to,idToMint);
-            if(URIs.length > 0 && bytes(URIs[i-1]).length > 0) {
-                tokenMetadataUriOverride[idToMint] = URIs[i-1];
+            _safeMint(mintTemp.to, idToMint);
+            if(mintTemp.URIs.length > 0 && bytes(mintTemp.URIs[i]).length > 0) {
+                tokenMetadataUriOverride[idToMint] = mintTemp.URIs[i];
             }
         }
+      }
     }
 
     /**
@@ -412,5 +428,15 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
 
     function getRoyaltyPercentage() public view virtual returns (uint256) {
         return royaltiesFees;
+    }
+
+    /**
+     * @notice This is a dangerous function. If you set admin to wrong address it is lost forever.
+     * If you don't know what you are doing we recomment using grantRole and revokeRole invidually.
+     * @param _newAdmin Address of the new admin.
+     */
+    function transferAdmin(address _newAdmin) external onlyRole(DEFAULT_ADMIN_ROLE) {
+      _grantRole(DEFAULT_ADMIN_ROLE, _newAdmin);
+      _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 }
