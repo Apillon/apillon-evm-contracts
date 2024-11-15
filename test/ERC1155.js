@@ -4,6 +4,8 @@ const { ethers } = require("hardhat");
 describe("ApillonERC1155Token", function () {
   let Token, token, controller, admin, addr2;
   const baseURI = "https://api.example.com/metadata/{id}.json";
+  const OPERATOR_ROLE =
+    "0x7b765e0e932d348852a6f810bfa1ab891e259123f02db8cdcde614c570223357";
 
   beforeEach(async function () {
     [controller, admin, addr2, ...addrs] = await ethers.getSigners();
@@ -14,10 +16,6 @@ describe("ApillonERC1155Token", function () {
   });
 
   describe("Deployment", function () {
-    it("Should set the right owner", async function () {
-      expect(await token.owner()).to.equal(controller.address);
-    });
-
     it("Should set the correct URI", async function () {
       expect(await token.uri(0)).to.equal(baseURI);
     });
@@ -34,7 +32,7 @@ describe("ApillonERC1155Token", function () {
     it("Should grant admin role to controller if admin addresses is not provided", async function () {
       const newToken = await Token.deploy(
         baseURI,
-        ethers.constants.AddressZero
+        ethers.constants.AddressZero,
       );
       const defaultAdminRole = await newToken.DEFAULT_ADMIN_ROLE();
       const controllerRole = await newToken.CONTROLLER_ROLE();
@@ -83,9 +81,9 @@ describe("ApillonERC1155Token", function () {
       const adminRole = await token.DEFAULT_ADMIN_ROLE();
 
       await expect(
-        token.grantRole(adminRole, addr2.address)
+        token.grantRole(adminRole, addr2.address),
       ).to.be.revertedWith(
-        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`
+        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`,
       );
 
       expect(await token.hasRole(adminRole, addr2.address)).to.be.false;
@@ -95,9 +93,9 @@ describe("ApillonERC1155Token", function () {
       const adminRole = await token.DEFAULT_ADMIN_ROLE();
 
       await expect(
-        token.revokeRole(adminRole, admin.address)
+        token.revokeRole(adminRole, admin.address),
       ).to.be.revertedWith(
-        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`
+        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`,
       );
 
       expect(await token.hasRole(adminRole, admin.address)).to.be.true;
@@ -107,9 +105,9 @@ describe("ApillonERC1155Token", function () {
       const adminRole = await token.DEFAULT_ADMIN_ROLE();
 
       await expect(
-        token.grantRole(adminRole, addr2.address)
+        token.grantRole(adminRole, addr2.address),
       ).to.be.revertedWith(
-        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`
+        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`,
       );
 
       expect(await token.hasRole(adminRole, addr2.address)).to.be.false;
@@ -120,9 +118,9 @@ describe("ApillonERC1155Token", function () {
       const adminRole = await token.DEFAULT_ADMIN_ROLE();
 
       await expect(
-        token.revokeRole(controllerRole, controller.address)
+        token.revokeRole(controllerRole, controller.address),
       ).to.be.revertedWith(
-        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`
+        `AccessControl: account ${controller.address.toLocaleLowerCase()} is missing role ${adminRole}`,
       );
 
       expect(await token.hasRole(controllerRole, admin.address)).to.be.false;
@@ -146,10 +144,12 @@ describe("ApillonERC1155Token", function () {
       }
     });
 
-    it("Should not mint tokens by non-owner", async function () {
+    it("Should not mint tokens by non-operator", async function () {
       await expect(
-        token.connect(admin).mint(admin.address, 1, 100, [])
-      ).to.be.revertedWith("Ownable: caller is not the owner");
+        token.connect(admin).mint(admin.address, 1, 100, []),
+      ).to.be.revertedWith(
+        `AccessControl: account ${admin.address.toLocaleLowerCase()} is missing role ${OPERATOR_ROLE}`,
+      );
     });
   });
 
@@ -165,7 +165,7 @@ describe("ApillonERC1155Token", function () {
     it("Should not mint while paused", async function () {
       await token.pause();
       await expect(token.mint(admin.address, 1, 100, [])).to.be.revertedWith(
-        "ERC1155Pausable: token transfer while paused"
+        "ERC1155Pausable: token transfer while paused",
       );
     });
   });
