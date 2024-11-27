@@ -1,5 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-verify");
 require("hardhat-abi-exporter");
 require("hardhat-contract-sizer");
 require("solidity-coverage");
@@ -11,6 +11,7 @@ const {
   moonbeamScanApiKey,
   sepoliaRPC,
   etherScanApiKey,
+  blockScoutApiKey,
   privateKeyMainnet,
 } = require("./secrets.json");
 
@@ -83,6 +84,14 @@ module.exports = {
       accounts: [privateKeyTestnet],
       explorer: "https://shibuya.subscan.io/",
     },
+    astar: {
+      url: "https://evm.astar.network",
+      chainId: 592,
+      gasPrice: 5000000000, // 5gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://astar.blockscout.com/",
+    },
     sepolia: {
       url: sepoliaRPC,
       chainId: 11155111,
@@ -114,6 +123,17 @@ module.exports = {
       moonbeam: moonbeamScanApiKey,
       sepolia: etherScanApiKey,
       mainnet: etherScanApiKey,
+      astar: blockScoutApiKey,
     },
+    customChains: [
+      {
+        network: "astar",
+        chainId: 592,
+        urls: {
+          apiURL: "https://astar.blockscout.com/api",
+          browserURL: "https://astar.blockscout.com/",
+        },
+      },
+    ],
   },
 };
