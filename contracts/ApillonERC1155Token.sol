@@ -59,10 +59,4 @@ contract ApillonERC1155Token is ERC1155, ERC1155Pausable, ERC1155Burnable, ERC11
     ) internal override(ERC1155, ERC1155Pausable, ERC1155Supply) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
-//    function _update(address from, address to, uint256[] memory ids, uint256[] memory values)
-//        internal
-//        override(ERC1155, ERC1155Pausable, ERC1155Supply)
-//    {
-//        super._update(from, to, ids, values);
-//    }
 }
