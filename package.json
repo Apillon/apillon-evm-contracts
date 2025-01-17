@@ -7,18 +7,19 @@
     "test": "npx hardhat test",
     "build": "npx hardhat compile",
     "flatten": "npx hardhat flatten",
-    "coverage": "npx hardhat coverage"
+    "coverage": "npx hardhat coverage",
+    "list-networks": "npx hardhat verify --list-networks"
   },
   "author": "Mitja Kjuder",
   "license": "ISC",
   "devDependencies": {
-    "@nomicfoundation/hardhat-verify": "^2.0.11",
+    "@nomicfoundation/hardhat-verify": "^2.0.12",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.1",
-    "hardhat": "^2.17.1",
+    "hardhat": "^2.22.18",
     "hardhat-abi-exporter": "^2.3.1",
     "hardhat-contract-sizer": "^2.1.1",
     "solidity-coverage": "^0.8.4"
