@@ -13,6 +13,7 @@ const {
   etherScanApiKey,
   blockScoutApiKey,
   privateKeyMainnet,
+  baseScanApiKey,
 } = require("./secrets.json");
 
 /**
@@ -45,6 +46,9 @@ module.exports = {
         },
       },
     ],
+  },
+  sourcify: {
+    enabled: false,
   },
   networks: {
     hardhat: {
@@ -108,6 +112,22 @@ module.exports = {
       accounts: [privateKeyMainnet],
       explorer: "https://etherscan.com/",
     },
+    base: {
+      url: "https://mainnet.base.org",
+      chainId: 8453,
+      gasPrice: 1000000000, // 1 gwei
+      gas: 2000000,
+      accounts: [privateKeyMainnet],
+      explorer: "https://basescan.org",
+    },
+    baseSepolia: {
+      url: "https://sepolia.base.org",
+      chainId: 84532,
+      gasPrice: 1000000000, // 1 gwei
+      gas: 2000000,
+      accounts: [privateKeyTestnet],
+      explorer: "https://sepolia.basescan.org",
+    },
   },
   abiExporter: {
     path: "./data/abi",
@@ -124,6 +144,8 @@ module.exports = {
       sepolia: etherScanApiKey,
       mainnet: etherScanApiKey,
       astar: blockScoutApiKey,
+      base: baseScanApiKey,
+      baseSepolia: baseScanApiKey,
     },
     customChains: [
       {
