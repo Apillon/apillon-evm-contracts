@@ -22,10 +22,8 @@ secrets.json
 
 # Node.js
 node_modules
-package-lock.json
 
 #Hardhat files
-bin
 cache
 artifacts
 data/
@@ -34,8 +32,5 @@ coverage.json
 
 #Solidity
 soljson*
-
-secrets.json
-coverage.json
 .tmp*
 .env
