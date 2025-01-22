@@ -9,11 +9,11 @@ networks=(
 #  "mainnet"
   "moonbeam"
   "astar"
-  "sepolia"
+  "celo"
   "base"
   "arbitrumOne"
   "avalanche"
-  "optimism"
+  "optimisticEthereum"
   "polygon"
 )
 

@@ -9,10 +9,11 @@ networks=(
   "sepolia"
   "moonbeamTestnet"
   "astarShibuya"
+  "celoAlfajores"
   "baseSepolia"
   "arbitrumSepolia"
   "avalancheFujiTestnet"
-  "optimismSepolia"
+  "optimisticSepolia"
   "polygonAmoy"
 )
 

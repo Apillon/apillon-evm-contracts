@@ -36,6 +36,13 @@ async function deployAndVerifyContract(
   constructorArgs = [],
 ) {
   try {
+    const gasPrice = await hre.ethers.provider.getGasPrice();
+    console.log(
+      `Current network gas price: ${hre.ethers.utils.formatUnits(
+        gasPrice,
+        "gwei",
+      )} gwei`,
+    );
     const signer = new hre.ethers.Wallet(PRIVATE_KEY, hre.ethers.provider);
     console.log(
       `Deploying contract ${contractName} on network ${chain} from ${signer.address}`,
@@ -43,13 +50,13 @@ async function deployAndVerifyContract(
     const contractFactory = await hre.ethers.getContractFactory(contractName, {
       signer,
     });
-    const contractInstance = await contractFactory.deploy(...constructorArgs);
+    const contractInstance = await contractFactory.deploy(...constructorArgs, {
+      gasPrice: gasPrice.mul(110).div(100),
+    });
+    //const contractInstance = await contractFactory.deploy(...constructorArgs);
     await contractInstance.deployed();
-    await waitForContractAvailability(
-      hre,
-      contractInstance.address,
-      contractName,
-    );
+    console.log(`Waiting for 5 confirmations of the deployment transaction...`);
+    await contractInstance.deployTransaction.wait(5);
     console.log(`${contractName} deployed at: ${contractInstance.address}`);
 
     // Verify the contract on explorer (using Hardhat verify plugin)
@@ -62,41 +69,5 @@ async function deployAndVerifyContract(
   } catch (error) {
     console.error("Error deploying and verifying contract:", error.message);
     throw error;
-  }
-}
-
-async function waitForContractAvailability(
-  hre,
-  contractAddress,
-  contractName,
-  retries = 5,
-  delay = 1000,
-) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const contractCode = await hre.ethers.provider.getCode(contractAddress);
-      if (contractCode && contractCode !== "0x") {
-        console.log(
-          `Contract ${contractName} is now available at address: ${contractAddress}`,
-        );
-        return true;
-      } else {
-        throw new Error("Contract code is not available yet.");
-      }
-    } catch (checkError) {
-      if (i === retries - 1) {
-        console.error(
-          `Contract ${contractName} not available after multiple attempts:`,
-          checkError.message,
-        );
-        throw checkError;
-      }
-      console.log(
-        `Retrying to verify contract availability for ${contractName} (Attempt ${
-          i + 1
-        }/${retries})...`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
   }
 }
