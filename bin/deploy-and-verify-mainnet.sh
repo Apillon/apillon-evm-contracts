@@ -18,5 +18,8 @@ networks=(
 )
 
 for network in "${networks[@]}"; do
+  echo "----------------------------------------------"
+  echo "Deploying and verifying $contractName on $network"
+  echo "----------------------------------------------"
   hardhat deploy_and_verify_contract $contractName --network $network
 done

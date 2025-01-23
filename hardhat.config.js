@@ -111,7 +111,7 @@ module.exports = {
       explorer: "https://sepolia.etherscan.io/",
     },
     mainnet: {
-      url: "https://ethereum.publicnode.com",
+      url: "https://ethereum-rpc.publicnode.com",
       chainId: 1,
       gasPrice: 42000000000, // 48gwei
       gas: 2400000,
@@ -264,7 +264,7 @@ module.exports = {
         network: "celo",
         chainId: 42220,
         urls: {
-          apiURL: "https://celo.drpc.org",
+          apiURL: "https://api.celoscan.io/api",
           browserURL: "https://celoscan.io",
         },
       },
