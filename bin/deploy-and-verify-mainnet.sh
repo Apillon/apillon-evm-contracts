@@ -9,14 +9,17 @@ networks=(
 #  "mainnet"
   "moonbeam"
   "astar"
-  "sepolia"
+  "celo"
   "base"
   "arbitrumOne"
   "avalanche"
-  "optimism"
+  "optimisticEthereum"
   "polygon"
 )
 
 for network in "${networks[@]}"; do
+  echo "----------------------------------------------"
+  echo "Deploying and verifying $contractName on $network"
+  echo "----------------------------------------------"
   hardhat deploy_and_verify_contract $contractName --network $network
 done

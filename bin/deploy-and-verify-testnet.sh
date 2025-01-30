@@ -9,13 +9,17 @@ networks=(
   "sepolia"
   "moonbeamTestnet"
   "astarShibuya"
+  "celoAlfajores"
   "baseSepolia"
   "arbitrumSepolia"
   "avalancheFujiTestnet"
-  "optimismSepolia"
+  "optimisticSepolia"
   "polygonAmoy"
 )
 
 for network in "${networks[@]}"; do
+  echo "----------------------------------------------"
+  echo "Deploying and verifying $contractName on $network"
+  echo "----------------------------------------------"
   hardhat deploy_and_verify_contract $contractName --network $network
 done

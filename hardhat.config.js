@@ -17,6 +17,9 @@ const {
   privateKeyMainnet,
   baseScanApiKey,
   avalancheScanApiKey,
+  optimismScanApiKey,
+  arbitrumScanApiKey,
+  celoScanApiKey,
 } = require("./secrets.json");
 
 /**
@@ -108,7 +111,7 @@ module.exports = {
       explorer: "https://sepolia.etherscan.io/",
     },
     mainnet: {
-      url: "https://ethereum.publicnode.com",
+      url: "https://ethereum-rpc.publicnode.com",
       chainId: 1,
       gasPrice: 42000000000, // 48gwei
       gas: 2400000,
@@ -116,20 +119,20 @@ module.exports = {
       explorer: "https://etherscan.com/",
     },
     celo: {
-      url: "https://forno.celo.org", // Celo Mainnet RPC
+      url: "https://celo.drpc.org", // Celo Mainnet RPC
       chainId: 42220,
       gasPrice: 5000000000, // 5 gwei
       gas: 2000000,
       accounts: [privateKeyMainnet],
-      explorer: "https://explorer.celo.org/",
+      explorer: "https://celoscan.io/",
     },
     celoAlfajores: {
-      url: "https://alfajores-forno.celo-testnet.org", // Celo Testnet (Alfajores) RPC
+      url: "https://api-alfajores.celoscan.io/api",
       chainId: 44787,
       gasPrice: 5000000000, // 5 gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
-      explorer: "https://alfajores-blockscout.celo-testnet.org/",
+      explorer: "https://alfajores.celoscan.io",
     },
     base: {
       url: "https://mainnet.base.org",
@@ -148,7 +151,7 @@ module.exports = {
       explorer: "https://sepolia.basescan.org",
     },
     arbitrumOne: {
-      url: "https://endpoints.omniatech.io/v1/arbitrum/one/public",
+      url: "https://arbitrum-one-rpc.publicnode.com",
       chainId: 42161,
       gasPrice: 1000000000, // 1 gwei
       gas: 2000000,
@@ -156,12 +159,12 @@ module.exports = {
       explorer: "https://arbiscan.io",
     },
     arbitrumSepolia: {
-      url: "https://endpoints.omniatech.io/v1/arbitrum/sepolia/public",
+      url: "https://arbitrum-sepolia-rpc.publicnode.com",
       chainId: 421614,
       gasPrice: 1000000000, // 1 gwei
       gas: 2000000,
       accounts: [privateKeyTestnet],
-      explorer: "https://testnet.arbiscan.io",
+      explorer: "https://sepolia.arbiscan.io/",
     },
     avalanche: {
       url: "https://avalanche-c-chain-rpc.publicnode.com",
@@ -179,7 +182,7 @@ module.exports = {
       accounts: [privateKeyTestnet],
       explorer: "https://testnet.snowtrace.io/",
     },
-    optimism: {
+    optimisticEthereum: {
       url: "https://mainnet.optimism.io",
       chainId: 10,
       gasPrice: 1000000, // 0.001 gwei
@@ -187,7 +190,7 @@ module.exports = {
       accounts: [privateKeyMainnet],
       explorer: "https://optimistic.etherscan.io",
     },
-    optimismSepolia: {
+    optimisticSepolia: {
       url: "https://sepolia.optimism.io",
       chainId: 11155420,
       gasPrice: 1000000, // 0.001 gwei
@@ -196,7 +199,7 @@ module.exports = {
       explorer: "https://sepolia-optimistic.etherscan.io",
     },
     polygon: {
-      url: "https://polygon.llamarpc.com",
+      url: "https://rpc.ankr.com/polygon",
       chainId: 137,
       gasPrice: 35000000000, // 35 gwei
       gas: 2000000,
@@ -221,6 +224,7 @@ module.exports = {
   etherscan: {
     apiKey: {
       polygonMumbai: polygonScanApiKey,
+      polygonAmoy: polygonScanApiKey,
       polygon: polygonScanApiKey,
       moonbaseAlpha: moonbeamScanApiKey,
       moonbeam: moonbeamScanApiKey,
@@ -230,9 +234,14 @@ module.exports = {
       astarShibuya: blockScoutApiKey,
       base: baseScanApiKey,
       baseSepolia: baseScanApiKey,
+      avalanche: avalancheScanApiKey,
       avalancheFujiTestnet: avalancheScanApiKey,
-      celo: blockScoutApiKey,
-      celoAlfajores: blockScoutApiKey,
+      celo: celoScanApiKey,
+      celoAlfajores: celoScanApiKey,
+      optimisticEthereum: optimismScanApiKey,
+      optimisticSepolia: optimismScanApiKey,
+      arbitrumSepolia: arbitrumScanApiKey,
+      arbitrumOne: arbitrumScanApiKey,
     },
     customChains: [
       {
@@ -255,16 +264,24 @@ module.exports = {
         network: "celo",
         chainId: 42220,
         urls: {
-          apiURL: "https://forno.celo.org",
-          browserURL: "https://explorer.celo.org/",
+          apiURL: "https://api.celoscan.io/api",
+          browserURL: "https://celoscan.io",
         },
       },
       {
         network: "celoAlfajores",
         chainId: 44787,
         urls: {
-          apiURL: "https://alfajores-forno.celo-testnet.org",
-          browserURL: "https://alfajores-blockscout.celo-testnet.org/",
+          apiURL: "https://api-alfajores.celoscan.io/api",
+          browserURL: "https://alfajores.celoscan.io",
+        },
+      },
+      {
+        network: "optimisticSepolia",
+        chainId: 11155420,
+        urls: {
+          apiURL: "https://sepolia.optimism.io",
+          browserURL: "https://sepolia-optimistic.etherscan.io",
         },
       },
     ],
