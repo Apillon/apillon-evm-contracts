@@ -3,7 +3,12 @@ module.exports = [
   "MockSymbol",
   "https://api.example.com/nfts/",
   "",
-  [false, false, false, true],
+  [
+    false, // isDrop
+    false, // isSoulbound
+    false, // isRevokable
+    true, // isAutoIncrement
+  ],
   [
     hre.ethers.utils.parseUnits("0.001", 18).toString(), // _price
     0, // _dropStart

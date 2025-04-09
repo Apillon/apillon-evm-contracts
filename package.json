@@ -6,6 +6,7 @@
   "scripts": {
     "test": "npx hardhat test",
     "build": "npx hardhat compile",
+    "emulate": "npx hardhat node",
     "flatten": "npx hardhat flatten",
     "coverage": "npx hardhat coverage",
     "list-networks": "npx hardhat verify --list-networks"
