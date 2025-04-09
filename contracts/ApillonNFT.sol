@@ -101,7 +101,7 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
      * @param _numbers - All uints256 inputs in an array [_pricePerMint, _dropStart, _maxSupply, _reserve, _royaltiesFees].
      * _pricePerMint - Mint price (only relevant if isDrop == true)
      * _dropStart - drop start (only relevant if isDrop == true)
-     * _maxSupply - max supply (0 = unlimited)
+     * _maxSupply - max supply
      * _reserve - reserve for owner (only relevant if isDrop == true)
      * _royaltiesFees - royalties fee
      * @param _royaltiesAddress - royalties address
@@ -128,6 +128,8 @@ contract ApillonNFT is ERC721Enumerable, AccessControl, ERC2981 {
         pricePerMint = _numbers[0];
         dropStart = _numbers[1];
         maxSupply = _numbers[2];
+        require(maxSupply > 0, "maxSupply must be larger than 0.");
+
         if (isDrop) {
             require(_numbers[3] <= maxSupply, "reserve too high.");
             reserve = _numbers[3];
