@@ -13,11 +13,11 @@ async function main() {
     {
       erc20TokenAddress: hre.ethers.constants.AddressZero,
       tokenUriIsEnumerable: true,
-      royaltyRecipient: '0x1F21f7A70997e3eC5FbD61C047A26Cdc88e7089B',
+      royaltyRecipient: "0x1F21f7A70997e3eC5FbD61C047A26Cdc88e7089B",
       royaltyPercentageBps: 500, // 1 basis point == 0.01%
       maxSupply: 100,
-      pricePerMint: ethers.utils.parseEther('0.01'), //  _price
-    }
+      pricePerMint: hre.ethers.utils.parseEther("0.01"), //  _price
+    },
   );
 
   await contr.deployed();
@@ -25,7 +25,7 @@ async function main() {
   console.log(
     "ApillonNFTNestable deployed to: %saddress/%s",
     hre.network.config.explorer,
-    contr.address
+    contr.address,
   );
 }
 

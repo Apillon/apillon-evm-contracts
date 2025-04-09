@@ -40,7 +40,7 @@ Run `npx hardhat verify --network moonbeamTestnet <contract-address> <constructo
 
 OR
 
-Run `npx hardhat verify --network moonbeamTestnet <contract-address> --constructor-args ./scripts/collection-args.js`.
+Run `npx hardhat verify --network moonbeamTestnet <contract-address> --constructor-args ./scripts/ApillonNFT-args.js`.
 
 ### Claim Token
 
