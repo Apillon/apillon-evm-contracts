@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.21;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -27,7 +27,7 @@ contract NctrStaking is Ownable {
     event Unstaked(address indexed user, uint256 amount, uint256 reward);
     event Withdrawn(address indexed user, uint256 amount);
 
-    constructor(IERC20 _stakingToken, address _rewardWallet) Ownable(msg.sender) {
+    constructor(IERC20 _stakingToken, address _rewardWallet) Ownable() {
         stakingToken = _stakingToken;
         rewardWallet = _rewardWallet;
     }
